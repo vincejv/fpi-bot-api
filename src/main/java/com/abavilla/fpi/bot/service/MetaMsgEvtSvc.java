@@ -86,7 +86,7 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
                           pageAccessToken).onFailure().retry().withBackOff(
                           Duration.ofSeconds(3)).withJitter(0.2)
                       .atMost(5));
-        }).subscribe().with(log-> Log.info("Sent message:: " + log));
+        }).subscribe().with(log-> Log.info("Sent message:: " + log.getEntity()));
       }
     }
 
