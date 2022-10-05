@@ -38,7 +38,7 @@ steps:
       - '--platform=managed'
       - '--image=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
       - >-
-        --set-env-vars=OIDC_CLIENT_ID=$_OIDC_CLIENT_ID,OIDC_AUTH_URL=$_OIDC_AUTH_URL,META_GRAPH_API_BASE_API=$_META_GRAPH_API_BASE_API,META_FB_PAGE_ID=$_META_FB_PAGE_ID,META_FB_VRFY_TOKEN=$_META_FB_VRFY_TOKEN
+        --set-env-vars=OIDC_CLIENT_ID=$_OIDC_CLIENT_ID,OIDC_AUTH_URL=$_OIDC_AUTH_URL,META_GRAPH_API_BASE_URI=$_META_GRAPH_API_BASE_URI,META_FB_PAGE_ID=$_META_FB_PAGE_ID,META_FB_VRFY_TOKEN=$_META_FB_VRFY_TOKEN
       - >-
         --set-secrets=MONGO_CONN_STRING=vbl_mongo_connection_string:latest,OIDC_SECRET=oidc_secret_keycloak:latest,META_FB_APP_SECRET=meta_fb_app_secret:latest,META_FB_PAGE_ACCESS_TOKEN=meta_fb_page_access_token:latest
       - >-
