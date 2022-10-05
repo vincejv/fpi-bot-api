@@ -49,7 +49,7 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
 
   @Path("msgr")
   @POST
-  public Uni<Void> receiveEvent(
+  public Uni<Void> receiveEventFromMsgr(
       @RestHeader("X-Hub-Signature-256") String signatureHdr,
       String body) {
     var signature = StringUtils.removeStart(signatureHdr, BotConst.HTTP_HDR_SHA256);
@@ -61,9 +61,9 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
     }
   }
 
-  @Path("msgr/verify")
+  @Path("msgr")
   @GET
-  public Uni<String> verify(
+  public Uni<String> verifyMsgr(
       @QueryParam("hub.mode") String mode,
       @QueryParam("hub.verify_token") String verifyToken,
       @QueryParam("hub.challenge") String challenge) {
