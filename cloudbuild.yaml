@@ -1,0 +1,68 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - -c
+      - |
+        on_going_build=($(gcloud builds list --ongoing --format='value(id)' --filter="substitutions._TRIGGER_ID=$_TRIGGER_ID" | xargs))
+        for (( i=0; i<${#on_going_build[@]}; i++ )); do
+          if [ "$i" -gt "0" ]; then # skip current
+            echo "Cancelling build ${on_going_build[i]}"
+            gcloud builds cancel --no-user-output-enabled ${on_going_build[i]}
+          fi
+        done
+    id: "Cancel ongoing builds"
+    entrypoint: 'bash'
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '--no-cache'
+      - '-t'
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--build-arg=GITHUB_USERNAME=$_GITHUB_USERNAME'
+      - '--build-arg=GITHUB_TOKEN=$_GITHUB_TOKEN'
+      - .
+      - '-f'
+      - Dockerfile
+    id: "Build docker image"
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+    id: "Push to registry"
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - '--image=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+      - >-
+        --update-env-vars=OIDC_CLIENT_ID=$_OIDC_CLIENT_ID,OIDC_AUTH_URL=$_OIDC_AUTH_URL,META_GRAPH_API_BASE_API=$_META_GRAPH_API_BASE_API,META_FB_PAGE_ID=$_META_FB_PAGE_ID
+      - >-
+        --update-secrets=MONGO_CONN_STRING=vbl_mongo_connection_string:latest,OIDC_SECRET=oidc_secret_keycloak:latest,META_FB_VRFY_TOKEN=meta_fb_verify_token:latest,META_FB_APP_SECRET=meta_fb_app_secret:latest,META_FB_PAGE_ACCESS_TOKEN=meta_fb_page_access_token:latest
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS
+      - '--cpu=1000m'
+      - '--memory=384Mi'
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+    id: "Deploy to cloud run"
+    entrypoint: gcloud
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - add-iam-policy-binding
+      - $_SERVICE_NAME
+      - '--member=allUsers'
+      - '--role=roles/run.invoker'
+      - '--region=$_DEPLOY_REGION'
+    id: "Configure cloud run"
+    entrypoint: gcloud
+images:
+  - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+options:
+  machineType: E2_HIGHCPU_8
+  substitutionOption: ALLOW_LOOSE
+timeout: "7200s"
