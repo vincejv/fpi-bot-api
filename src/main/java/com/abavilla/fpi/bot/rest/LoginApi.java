@@ -43,7 +43,7 @@ public interface LoginApi {
   /**
    * Perform a trusted login
    * @param login Login credentials
-   * @return
+   * @return void
    */
   @POST
   @Path("trusted")
