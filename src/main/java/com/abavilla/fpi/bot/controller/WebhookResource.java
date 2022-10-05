@@ -18,8 +18,10 @@
 
 package com.abavilla.fpi.bot.controller;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
@@ -58,4 +60,15 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
       throw new FPISvcEx(StringUtils.EMPTY, Response.Status.FORBIDDEN.getStatusCode());
     }
   }
+
+  @Path("msgr/verify")
+  @GET
+  public Uni<String> verify(
+      @QueryParam("hub.mode") String mode,
+      @QueryParam("hub.verify_token") String verifyToken,
+      @QueryParam("hub.challenge") String challenge) {
+    return service.verifyWebhook(mode, verifyToken, challenge);
+  }
+
+
 }

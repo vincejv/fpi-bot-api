@@ -28,6 +28,7 @@ import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.bot.rest.LoginApi;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
+import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.fw.service.AbsRepoSvc;
 import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
@@ -103,7 +104,7 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
    */
   public Uni<String> verifyWebhook(
       String mode, String verifyToken, String challenge) {
-    if (StringUtils.equals(mode, "subscribe") &&
+    if (StringUtils.equals(mode, BotConst.META_HUB_MODE_SUBSCRIBE) &&
         StringUtils.equals(verifyToken, authorizedToken)) {
       // authorized
       return Uni.createFrom().item(challenge);
