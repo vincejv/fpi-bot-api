@@ -18,13 +18,14 @@
 
 package com.abavilla.fpi.bot.service;
 
-import java.time.Duration;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-import com.abavilla.fpi.bot.dto.auth.WebhookLoginDto;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
+import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.bot.rest.LoginApi;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
@@ -32,14 +33,12 @@ import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.fw.service.AbsRepoSvc;
 import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
-import com.abavilla.fpi.meta.dto.msgr.EntryDto;
-import com.abavilla.fpi.meta.dto.msgr.MessagingDto;
-import io.quarkus.logging.Log;
+import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
+import com.abavilla.fpi.meta.mapper.MetaHookEvtMapper;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMsgEvtRepo> {
@@ -62,33 +61,43 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
   @RestClient
   MetaGraphApi metaGraphApi;
 
-  public Uni<Void> processWebhook(MetaHookEvtDto event) {
-    for (EntryDto entryDto : event.getEntry()) {
-      for (MessagingDto messagingDto : entryDto.getMessaging()) {
-        var login = new WebhookLoginDto();
-        login.setUsername(messagingDto.getSender().getId());
-        var recipient = String.format("{'id':'%s'}", login.getUsername());
-        loginApi.webhookAuthenticate(login).chain(resp->{
-          if (resp.getStatusInfo().getStatusCode() ==
-              Response.Status.OK.getStatusCode()) {
+  @Inject
+  MetaHookEvtMapper metaHookEvtMapper;
 
-          } else {
-            Log.warn("Webhook login status: " + resp.getStatusInfo().getStatusCode());
-          }
-          return metaGraphApi.getProfile( login.getUsername(), "name", pageAccessToken)
-              .onFailure().retry().withBackOff(
-                  Duration.ofSeconds(3)).withJitter(0.2)
-              .atMost(5)
-              .onFailure().recoverWithItem(t-> RestResponse.ok("Unable to retrieve name"))
-              .chain(profileGet ->
-                  metaGraphApi.sendMsgrMsg(pageId, recipient, "RESPONSE",
-                          String.format("{'text':'Pending registration for %s'}", profileGet.getEntity()),
-                          pageAccessToken).onFailure().retry().withBackOff(
-                          Duration.ofSeconds(3)).withJitter(0.2)
-                      .atMost(5));
-        }).subscribe().with(log-> Log.info("Sent message:: " + log.getEntity()));
-      }
-    }
+  @Inject
+  MetaMsgEvtMapper metaMsgEvtMapper;
+
+  public Uni<Void> processWebhook(MetaHookEvtDto event) {
+    List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
+    List<MetaMsgEvt> entities = metaMsgEvtDtos.stream().map(dto -> metaMsgEvtMapper.mapToEntity(dto)).toList();
+    repo.persist(entities).subscribe().with(ignored->{});
+
+//    for (EntryDto entryDto : event.getEntry()) {
+//      for (MessagingDto messagingDto : entryDto.getMessaging()) {
+//        var login = new WebhookLoginDto();
+//        login.setUsername(messagingDto.getSender().getId());
+//        var recipient = String.format("{'id':'%s'}", login.getUsername());
+//        loginApi.webhookAuthenticate(login).chain(resp->{
+//          if (resp.getStatusInfo().getStatusCode() ==
+//              Response.Status.OK.getStatusCode()) {
+//
+//          } else {
+//            Log.warn("Webhook login status: " + resp.getStatusInfo().getStatusCode());
+//          }
+//          return metaGraphApi.getProfile( login.getUsername(), "name", pageAccessToken)
+//              .onFailure().retry().withBackOff(
+//                  Duration.ofSeconds(3)).withJitter(0.2)
+//              .atMost(5)
+//              .onFailure().recoverWithItem(t-> RestResponse.ok("Unable to retrieve name"))
+//              .chain(profileGet ->
+//                  metaGraphApi.sendMsgrMsg(pageId, recipient, "RESPONSE",
+//                          String.format("{'text':'Pending registration for %s'}", profileGet.getEntity()),
+//                          pageAccessToken).onFailure().retry().withBackOff(
+//                          Duration.ofSeconds(3)).withJitter(0.2)
+//                      .atMost(5));
+//        }).subscribe().with(log-> Log.info("Sent message:: " + log.getEntity()));
+//      }
+//    }
 
     return Uni.createFrom().voidItem();
   }
