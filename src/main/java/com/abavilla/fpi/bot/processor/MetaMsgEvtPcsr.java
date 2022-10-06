@@ -36,7 +36,7 @@ public class MetaMsgEvtPcsr {
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class, blocking = true)
   public void process(MetaMsgEvtDto evt) {
     Log.info("Echoing: " + evt);
-    metaMsgrSvc.sendMsg(evt.getContent(), evt.getRecipient()).await().indefinitely();
+    metaMsgrSvc.sendMsg(evt.getContent(), evt.getSender()).await().indefinitely();
     Log.info("Sent: " + evt.getMetaMsgId());
   }
 

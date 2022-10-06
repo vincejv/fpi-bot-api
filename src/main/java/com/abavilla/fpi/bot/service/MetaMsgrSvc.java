@@ -43,11 +43,13 @@ public class MetaMsgrSvc {
     MsgDtlDto msgDtl = new MsgDtlDto();
     msgDtl.setText(msg);
 
-    return metaGraphApi.sendMsgrMsg(metaApiKeyConfig.getPageId(),
-        recipient.toString(),
+    return metaGraphApi.sendMsgrMsg(
+        metaApiKeyConfig.getPageId(),
+        recipient.toJsonStr(),
         "RESPONSE",
-        msgDtl.toString(),
-        metaApiKeyConfig.getPageAccessToken()).replaceWithVoid();
+        msgDtl.toJsonStr(),
+        metaApiKeyConfig.getPageAccessToken()
+    ).replaceWithVoid();
   }
 
 }
