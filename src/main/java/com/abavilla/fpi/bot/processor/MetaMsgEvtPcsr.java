@@ -16,19 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-package com.abavilla.fpi.bot.config;
+package com.abavilla.fpi.bot.processor;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-import lombok.Getter;
+import com.abavilla.fpi.bot.service.MetaMsgrSvc;
+import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
+import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
+import io.quarkus.logging.Log;
+import io.quarkus.vertx.ConsumeEvent;
+import io.smallrye.mutiny.Uni;
 
-/**
- * Configuration for API Keys.
- *
- * @author <a href="mailto:vincevillamora@gmail.com">Vince Villamora</a>
- */
 @ApplicationScoped
-@Getter
-public class ApiKeyConfig {
+public class MetaMsgEvtPcsr {
+
+  @Inject
+  MetaMsgrSvc metaMsgrSvc;
+
+  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
+  public Uni<Void> process(MetaMsgEvtDto evt) {
+    Log.info("Echoing: " + evt);
+    return metaMsgrSvc.sendMsg(evt.getContent(), evt.getRecipient());
+  }
 
 }

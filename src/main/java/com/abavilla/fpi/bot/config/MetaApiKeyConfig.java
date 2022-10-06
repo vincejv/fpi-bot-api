@@ -21,14 +21,22 @@ package com.abavilla.fpi.bot.config;
 import javax.enterprise.context.ApplicationScoped;
 
 import lombok.Getter;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-/**
- * Configuration for API Keys.
- *
- * @author <a href="mailto:vincevillamora@gmail.com">Vince Villamora</a>
- */
 @ApplicationScoped
 @Getter
-public class ApiKeyConfig {
+public class MetaApiKeyConfig {
+
+  /**
+   * API Key for verification handshake between Meta and FPI
+   */
+  @ConfigProperty(name = "com.meta.facebook.verify-token")
+  String authorizedToken;
+
+  @ConfigProperty(name = "com.meta.facebook.page-access-token")
+  String pageAccessToken;
+
+  @ConfigProperty(name = "com.meta.facebook.page-id")
+  String pageId;
 
 }

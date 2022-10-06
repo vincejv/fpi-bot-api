@@ -24,42 +24,31 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
-import com.abavilla.fpi.bot.rest.LoginApi;
-import com.abavilla.fpi.bot.rest.MetaGraphApi;
 import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.fw.service.AbsRepoSvc;
+import com.abavilla.fpi.fw.util.DateUtil;
+import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
 import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
 import com.abavilla.fpi.meta.mapper.MetaHookEvtMapper;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @ApplicationScoped
 public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMsgEvtRepo> {
 
-  /**
-   * API Key for verification handshake between Meta and FPI
-   */
-  @ConfigProperty(name = "com.meta.facebook.verify-token")
-  String authorizedToken;
+  @Inject
+  MetaApiKeyConfig metaApiKeyConfig;
 
-  @ConfigProperty(name = "com.meta.facebook.page-access-token")
-  String pageAccessToken;
-
-  @ConfigProperty(name = "com.meta.facebook.page-id")
-  String pageId;
-
-  @RestClient
-  LoginApi loginApi;
-
-  @RestClient
-  MetaGraphApi metaGraphApi;
+  @Inject
+  EventBus bus;
 
   @Inject
   MetaHookEvtMapper metaHookEvtMapper;
@@ -70,8 +59,16 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
   public Uni<Void> processWebhook(MetaHookEvtDto event) {
     List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
     List<MetaMsgEvt> entities = metaMsgEvtDtos.stream()
-        .map(dto -> metaMsgEvtMapper.mapToEntity(dto)).toList();
-    repo.persist(entities).subscribe().with(ignored->{});
+        .map(dto -> {
+          bus.send("meta-msg-evt", dto,
+              new DeliveryOptions().setCodecName(MetaMsgEvtCodec.class.getName()));
+          MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(dto);
+          metaMsgEvt.setDateCreated(DateUtil.now());
+          metaMsgEvt.setDateUpdated(DateUtil.now());
+          return metaMsgEvt;
+        }).toList();
+
+    return repo.persist(entities).replaceWithVoid();
 
 //    for (EntryDto entryDto : event.getEntry()) {
 //      for (MessagingDto messagingDto : entryDto.getMessaging()) {
@@ -99,8 +96,6 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
 //        }).subscribe().with(log-> Log.info("Sent message:: " + log.getEntity()));
 //      }
 //    }
-
-    return Uni.createFrom().voidItem();
   }
 
 
@@ -115,7 +110,7 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
   public Uni<String> verifyWebhook(
       String mode, String verifyToken, String challenge) {
     if (StringUtils.equals(mode, BotConst.META_HUB_MODE_SUBSCRIBE) &&
-        StringUtils.equals(verifyToken, authorizedToken)) {
+        StringUtils.equals(verifyToken, metaApiKeyConfig.getAuthorizedToken())) {
       // authorized
       return Uni.createFrom().item(challenge);
     } else {

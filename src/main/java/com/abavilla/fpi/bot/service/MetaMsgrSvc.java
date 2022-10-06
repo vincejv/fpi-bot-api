@@ -16,19 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-package com.abavilla.fpi.bot.config;
+package com.abavilla.fpi.bot.service;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-import lombok.Getter;
+import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
+import com.abavilla.fpi.bot.rest.MetaGraphApi;
+import com.abavilla.fpi.meta.dto.msgr.MsgDtlDto;
+import com.abavilla.fpi.meta.dto.msgr.ProfileDto;
+import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-/**
- * Configuration for API Keys.
- *
- * @author <a href="mailto:vincevillamora@gmail.com">Vince Villamora</a>
- */
 @ApplicationScoped
-@Getter
-public class ApiKeyConfig {
+public class MetaMsgrSvc {
+
+  @RestClient
+  MetaGraphApi metaGraphApi;
+
+  @Inject
+  MetaApiKeyConfig metaApiKeyConfig;
+
+  public Uni<Void> sendMsg(String msg, String recipientId) {
+    ProfileDto recipient = new ProfileDto();
+    recipient.setId(recipientId);
+    MsgDtlDto msgDtl = new MsgDtlDto();
+    msgDtl.setText(msg);
+
+    return metaGraphApi.sendMsgrMsg(metaApiKeyConfig.getPageId(),
+        recipient.toString(),
+        "RESPONSE",
+        msgDtl.toString(),
+        metaApiKeyConfig.getPageAccessToken()).replaceWithVoid();
+  }
 
 }
