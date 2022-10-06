@@ -36,6 +36,7 @@ import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
 import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
 import com.abavilla.fpi.meta.mapper.MetaHookEvtMapper;
+import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -62,6 +63,7 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
         .map(dto -> {
           bus.send("meta-msg-evt", dto,
               new DeliveryOptions().setCodecName(MetaMsgEvtCodec.class.getName()));
+          Log.info("Sent to event bus " + dto.getMetaMsgId());
           MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(dto);
           metaMsgEvt.setDateCreated(DateUtil.now());
           metaMsgEvt.setDateUpdated(DateUtil.now());
