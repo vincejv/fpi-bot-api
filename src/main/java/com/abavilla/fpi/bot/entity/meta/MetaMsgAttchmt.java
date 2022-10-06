@@ -16,39 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-package com.abavilla.fpi.bot.processor;
+package com.abavilla.fpi.bot.entity.meta;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import com.abavilla.fpi.fw.entity.mongo.AbsMongoField;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import com.abavilla.fpi.bot.service.MetaMsgrSvc;
-import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
-import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtAttchmtDto;
-import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
-import io.quarkus.logging.Log;
-import io.quarkus.vertx.ConsumeEvent;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@RegisterForReflection
+public class MetaMsgAttchmt extends AbsMongoField {
+  private String url;
+  private String title;
+  private String stickerId;
 
-@ApplicationScoped
-public class MetaMsgEvtPcsr {
+  private String id;
+  private String retailerId;
+  private String imageUrl;
+  private String subtitle;
 
-  @Inject
-  MetaMsgrSvc metaMsgrSvc;
-
-  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class, blocking = true)
-  public void process(MetaMsgEvtDto evt) {
-    Log.info("Echoing: " + evt);
-    if (StringUtils.isNotBlank(evt.getContent())) {
-      metaMsgrSvc.sendMsg(evt.getContent(), evt.getSender()).await().indefinitely();
-    } else if (CollectionUtils.isNotEmpty(evt.getAttachments())) {
-      for (MetaMsgEvtAttchmtDto attachment : evt.getAttachments()) {
-        if (StringUtils.isNotBlank(attachment.getStickerId())) {
-
-        }
-      }
-    }
-    Log.info("Sent: " + evt.getMetaMsgId());
-  }
-
+  private String type;
 }

@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.fw.mapper.IDtoToEntityMapper;
 import com.abavilla.fpi.fw.util.DateUtil;
-import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
+import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

@@ -19,6 +19,7 @@
 package com.abavilla.fpi.bot.entity.meta;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.abavilla.fpi.fw.entity.mongo.AbsMongoItem;
 import io.quarkus.mongodb.panache.common.MongoEntity;
@@ -39,4 +40,5 @@ public class MetaMsgEvt extends AbsMongoItem {
   private String content;
   private String replyTo;
   private LocalDateTime timestamp;
+  private List<MetaMsgAttchmt> attachments;
 }

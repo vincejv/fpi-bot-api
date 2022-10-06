@@ -34,7 +34,7 @@ import com.abavilla.fpi.fw.service.AbsRepoSvc;
 import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
-import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
+import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import com.abavilla.fpi.meta.mapper.MetaHookEvtMapper;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
