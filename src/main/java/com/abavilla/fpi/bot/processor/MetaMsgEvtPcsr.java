@@ -26,7 +26,6 @@ import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.msgr.MetaMsgEvtDto;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
-import io.smallrye.mutiny.Uni;
 
 @ApplicationScoped
 public class MetaMsgEvtPcsr {
@@ -34,10 +33,11 @@ public class MetaMsgEvtPcsr {
   @Inject
   MetaMsgrSvc metaMsgrSvc;
 
-  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
-  public Uni<Void> process(MetaMsgEvtDto evt) {
+  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class, blocking = true)
+  public void process(MetaMsgEvtDto evt) {
     Log.info("Echoing: " + evt);
-    return metaMsgrSvc.sendMsg(evt.getContent(), evt.getRecipient());
+    metaMsgrSvc.sendMsg(evt.getContent(), evt.getRecipient()).await().indefinitely();
+    Log.info("Sent: " + evt.getMetaMsgId());
   }
 
 }
