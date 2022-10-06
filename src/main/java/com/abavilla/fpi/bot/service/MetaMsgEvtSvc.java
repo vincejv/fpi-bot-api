@@ -69,7 +69,8 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
 
   public Uni<Void> processWebhook(MetaHookEvtDto event) {
     List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
-    List<MetaMsgEvt> entities = metaMsgEvtDtos.stream().map(dto -> metaMsgEvtMapper.mapToEntity(dto)).toList();
+    List<MetaMsgEvt> entities = metaMsgEvtDtos.stream()
+        .map(dto -> metaMsgEvtMapper.mapToEntity(dto)).toList();
     repo.persist(entities).subscribe().with(ignored->{});
 
 //    for (EntryDto entryDto : event.getEntry()) {

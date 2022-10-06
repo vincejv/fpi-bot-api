@@ -45,7 +45,7 @@
     <dependency>
       <groupId>com.abavilla</groupId>
       <artifactId>fpi-meta-plugin</artifactId>
-      <version>1.0.6-RC</version>
+      <version>1.0.7-RC</version>
     </dependency>
   </dependencies>
   <build>
