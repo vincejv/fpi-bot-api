@@ -23,11 +23,10 @@ import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.service.MetaMsgrSvc;
 import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
-import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtAttchmtDto;
 import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
-import org.apache.commons.collections4.CollectionUtils;
+import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
@@ -36,19 +35,17 @@ public class MetaMsgEvtPcsr {
   @Inject
   MetaMsgrSvc metaMsgrSvc;
 
-  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class, blocking = true)
-  public void process(MetaMsgEvtDto evt) {
+  @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
+  public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Echoing: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
-      metaMsgrSvc.sendMsg(evt.getContent(), evt.getSender()).await().indefinitely();
-    } else if (CollectionUtils.isNotEmpty(evt.getAttachments())) {
-      for (MetaMsgEvtAttchmtDto attachment : evt.getAttachments()) {
-        if (StringUtils.isNotBlank(attachment.getStickerId())) {
-
-        }
-      }
+      return metaMsgrSvc.sendMsg(evt.getContent(), evt.getSender()).chain(resp -> {
+            Log.info("Sent messenger message: " + resp);
+            return Uni.createFrom().voidItem();
+          }
+      );
     }
-    Log.info("Sent: " + evt.getMetaMsgId());
+    return Uni.createFrom().voidItem();
   }
 
 }

@@ -52,20 +52,4 @@ public class MetaMsgrSvc {
     ).replaceWithVoid();
   }
 
-  public Uni<Void> sendSticker(String stickerId, String recipientId) {
-    ProfileDto recipient = new ProfileDto();
-    recipient.setId(recipientId);
-    MsgDtlDto msgDtl = new MsgDtlDto();
-//    MsgAttchmtDto attachment = new MsgAttchmtDto();
-//
-
-    return metaGraphApi.sendMsgrMsg(
-        metaApiKeyConfig.getPageId(),
-        recipient.toJsonStr(),
-        "RESPONSE",
-        msgDtl.toJsonStr(),
-        metaApiKeyConfig.getPageAccessToken()
-    ).replaceWithVoid();
-  }
-
 }
