@@ -23,10 +23,13 @@ import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
+import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.meta.dto.msgr.MsgDtlDto;
+import com.abavilla.fpi.meta.dto.msgr.MsgrReqReply;
 import com.abavilla.fpi.meta.dto.msgr.ProfileDto;
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 public class MetaMsgrSvc {
@@ -37,7 +40,7 @@ public class MetaMsgrSvc {
   @Inject
   MetaApiKeyConfig metaApiKeyConfig;
 
-  public Uni<Void> sendMsg(String msg, String recipientId) {
+  public Uni<MsgrReqReply> sendMsg(String msg, String recipientId) {
     ProfileDto recipient = new ProfileDto();
     recipient.setId(recipientId);
     MsgDtlDto msgDtl = new MsgDtlDto();
@@ -49,7 +52,13 @@ public class MetaMsgrSvc {
         "RESPONSE",
         msgDtl.toJsonStr(),
         metaApiKeyConfig.getPageAccessToken()
-    ).replaceWithVoid();
+    ).map(resp -> {
+      if (resp.getStatus() == RestResponse.StatusCode.OK) {
+        return resp.getEntity();
+      } else {
+        throw new FPISvcEx("Unable to send messenger reply");
+      }
+    });
   }
 
 }
