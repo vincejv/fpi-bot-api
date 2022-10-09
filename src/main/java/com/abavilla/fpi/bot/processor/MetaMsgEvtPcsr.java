@@ -45,6 +45,9 @@ public class MetaMsgEvtPcsr {
           }
       );
     }
+
+    // verify if person is registered
+
     return Uni.createFrom().voidItem();
   }
 
