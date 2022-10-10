@@ -68,12 +68,14 @@ public class MetaMsgEvtPcsr {
       })
 //      .onFailure().retry().withBackOff(
 //      Duration.ofSeconds(3)).withJitter(0.2).atMost(5)
-      .onFailure().recoverWithUni(throwable ->
-        metaMsgrSvc.sendMsg("Authentication error: " + throwable.getMessage(), evt.getSender())
-        .chain(resp -> {
-          Log.info("Sent messenger message: " + resp);
-          return Uni.createFrom().voidItem();
-        }))
+      .onFailure().recoverWithUni(throwable -> {
+        throwable.printStackTrace();
+            return metaMsgrSvc.sendMsg("Authentication error: " + throwable.getMessage(), evt.getSender())
+                .chain(resp -> {
+                  Log.info("Sent messenger message: " + resp);
+                  return Uni.createFrom().voidItem();
+                });
+          })
       .replaceWithVoid();
     }
 
