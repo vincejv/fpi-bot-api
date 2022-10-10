@@ -22,7 +22,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import com.abavilla.fpi.meta.dto.ProfileReqReply;
 import com.abavilla.fpi.meta.dto.msgr.MsgrReqReply;
@@ -34,6 +36,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 public interface MetaGraphApi {
 
   @POST
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("v15.0/{pageId}/messages")
   Uni<RestResponse<MsgrReqReply>> sendMsgrMsg(
       @PathParam("pageId") String pageId,
@@ -44,6 +47,7 @@ public interface MetaGraphApi {
   );
 
   @GET
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("{profileId}")
   Uni<RestResponse<ProfileReqReply>> getProfile(
       @PathParam("profileId") String profileId,
