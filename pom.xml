@@ -57,7 +57,7 @@
     <dependency>
       <groupId>com.abavilla</groupId>
       <artifactId>fpi-login-api-lib</artifactId>
-      <version>1.0.11-RC</version>
+      <version>1.0.12-RC</version>
     </dependency>
 
   </dependencies>
