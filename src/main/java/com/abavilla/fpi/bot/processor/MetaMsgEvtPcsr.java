@@ -51,29 +51,26 @@ public class MetaMsgEvtPcsr {
       WebhookLoginDto login = new WebhookLoginDto();
       login.setUsername(metaId);
       return loginApi.webhookAuthenticate(login).chain(sessionRest -> {
-        if (sessionRest.getStatus() == RestResponse.StatusCode.OK) {
-          return metaMsgrSvc.sendMsg("Authenticated", evt.getSender()).chain(resp -> {
+          if (sessionRest.getStatus() == RestResponse.StatusCode.OK) {
+            return metaMsgrSvc.sendMsg("Authenticated", evt.getSender()).chain(resp -> {
                 Log.info("Sent messenger message: " + resp);
                 return Uni.createFrom().voidItem();
               }
-          );
-        }
-        return metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender()).chain(resp -> {
+            );
+          }
+          return metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender()).chain(resp -> {
               Log.info("Sent messenger message: " + resp);
               return Uni.createFrom().voidItem();
             }
-        );
-      })
-//      .onFailure().retry().withBackOff(
-//      Duration.ofSeconds(3)).withJitter(0.2).atMost(5)
-      .onFailure().recoverWithUni(throwable ->
-              metaMsgrSvc.sendMsg("Authentication error: " +
-                      throwable.getMessage(), evt.getSender())
-          .chain(resp -> {
-            Log.info("Sent messenger message: " + resp);
-            return Uni.createFrom().voidItem();
-          }))
-      .replaceWithVoid();
+          );
+        })
+        .onFailure().recoverWithUni(throwable ->
+          metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender())
+            .chain(resp -> {
+              Log.info("Sent messenger message: " + resp);
+              return Uni.createFrom().voidItem();
+            }))
+        .replaceWithVoid();
     }
 
     return Uni.createFrom().voidItem();
