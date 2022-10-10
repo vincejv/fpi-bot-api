@@ -19,6 +19,18 @@
 package com.abavilla.fpi.bot.config;
 
 import com.abavilla.fpi.fw.config.BaseReflectionConfig;
+import com.abavilla.fpi.meta.dto.MetaHookEvtDto;
+import com.abavilla.fpi.meta.dto.ProfileReqReply;
+import com.abavilla.fpi.meta.dto.msgr.EntryDto;
+import com.abavilla.fpi.meta.dto.msgr.MessagingDto;
+import com.abavilla.fpi.meta.dto.msgr.MsgAttchmtDto;
+import com.abavilla.fpi.meta.dto.msgr.MsgDtlDto;
+import com.abavilla.fpi.meta.dto.msgr.MsgrReqReply;
+import com.abavilla.fpi.meta.dto.msgr.ProfileDto;
+import com.abavilla.fpi.meta.dto.msgr.QuickReplyDto;
+import com.abavilla.fpi.meta.dto.msgr.ReferralDto;
+import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtAttchmtDto;
+import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
@@ -27,6 +39,18 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
  * @author <a href="mailto:vincevillamora@gmail.com">Vince Villamora</a>
  */
 @RegisterForReflection(targets = {
+  MetaMsgEvtAttchmtDto.class,
+  MetaMsgEvtDto.class,
+  EntryDto.class,
+  MessagingDto.class,
+  MsgAttchmtDto.class,
+  MsgDtlDto.class,
+  MsgrReqReply.class,
+  ProfileDto.class,
+  QuickReplyDto.class,
+  ReferralDto.class,
+  MetaHookEvtDto.class,
+  ProfileReqReply.class,
 })
 public class ReflectionConfig extends BaseReflectionConfig {
 }

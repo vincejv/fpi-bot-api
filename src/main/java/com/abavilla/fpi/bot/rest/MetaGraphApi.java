@@ -25,6 +25,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import com.abavilla.fpi.meta.dto.ProfileReqReply;
+import com.abavilla.fpi.meta.dto.msgr.MsgrReqReply;
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -34,7 +35,7 @@ public interface MetaGraphApi {
 
   @POST
   @Path("v15.0/{pageId}/messages")
-  Uni<RestResponse<String>> sendMsgrMsg(
+  Uni<RestResponse<MsgrReqReply>> sendMsgrMsg(
       @PathParam("pageId") String pageId,
       @QueryParam("recipient") String recipient,
       @QueryParam("messaging_type") String type,
