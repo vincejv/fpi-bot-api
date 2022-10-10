@@ -36,3 +36,9 @@ com:
       app-secret: ${META_FB_APP_SECRET:ABCJSOWE1234}
       page-id: ${META_FB_PAGE_ID:ABCJSOWE1234}
       page-access-token: ${META_FB_PAGE_ACCESS_TOKEN:ABCJSOWE1234}
+
+fpi:
+  app-to-app:
+    auth:
+      username: ${FPI_APP_TO_APP_USERN:username}
+      password: ${FPI_APP_TO_APP_PASSW:password}
