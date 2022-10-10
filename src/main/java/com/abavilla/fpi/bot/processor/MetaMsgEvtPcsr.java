@@ -22,16 +22,15 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.service.MetaMsgrSvc;
+import com.abavilla.fpi.login.dto.SessionDto;
 import com.abavilla.fpi.login.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.rest.ext.TrustedLoginApi;
 import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
-import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 public class MetaMsgEvtPcsr {
@@ -44,36 +43,27 @@ public class MetaMsgEvtPcsr {
 
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
-    Log.info("Echoing: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
       // verify if person is registered
       var metaId = evt.getSender();
       WebhookLoginDto login = new WebhookLoginDto();
       login.setUsername(metaId);
-      return loginApi.webhookAuthenticate(login).chain(sessionRest -> {
-          if (sessionRest.getStatus() == RestResponse.StatusCode.OK) {
-            return metaMsgrSvc.sendMsg("Authenticated", evt.getSender()).chain(resp -> {
-                Log.info("Sent messenger message: " + resp);
-                return Uni.createFrom().voidItem();
-              }
-            );
+      return loginApi.webhookAuthenticate(login).chain(session -> {
+          if (session.getStatus() == SessionDto.SessionStatus.ESTABLISHED) {
+            return metaMsgrSvc.sendMsg("Authenticated", evt.getSender());
           }
-          return metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender()).chain(resp -> {
-              Log.info("Sent messenger message: " + resp);
-              return Uni.createFrom().voidItem();
-            }
-          );
+          return sendUnauthorizedMsg(evt);
         })
-        .onFailure().recoverWithUni(throwable ->
-          metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender())
-            .chain(resp -> {
-              Log.info("Sent messenger message: " + resp);
-              return Uni.createFrom().voidItem();
-            }))
+        // login failures
+        .onFailure().recoverWithUni(() -> sendUnauthorizedMsg(evt))
         .replaceWithVoid();
     }
 
     return Uni.createFrom().voidItem();
+  }
+
+  private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt) {
+    return metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender()).replaceWithVoid();
   }
 
 }
