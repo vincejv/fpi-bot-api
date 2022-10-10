@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.service.MetaMsgrSvc;
 import com.abavilla.fpi.login.dto.WebhookLoginDto;
-import com.abavilla.fpi.login.rest.TrustedLoginApi;
+import com.abavilla.fpi.login.rest.ext.TrustedLoginApi;
 import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import io.quarkus.logging.Log;
