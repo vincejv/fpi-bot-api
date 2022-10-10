@@ -33,10 +33,10 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @RegisterRestClient(configKey = "meta-graph-api")
+@Produces(MediaType.APPLICATION_JSON)
 public interface MetaGraphApi {
 
   @POST
-  @Produces(MediaType.APPLICATION_JSON)
   @Path("v15.0/{pageId}/messages")
   Uni<RestResponse<MsgrReqReply>> sendMsgrMsg(
       @PathParam("pageId") String pageId,
@@ -47,7 +47,6 @@ public interface MetaGraphApi {
   );
 
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
   @Path("{profileId}")
   Uni<RestResponse<ProfileReqReply>> getProfile(
       @PathParam("profileId") String profileId,
