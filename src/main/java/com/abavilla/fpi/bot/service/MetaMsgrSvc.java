@@ -25,8 +25,8 @@ import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.meta.dto.msgr.MsgDtlDto;
+import com.abavilla.fpi.meta.dto.msgr.MsgrReqReply;
 import com.abavilla.fpi.meta.dto.msgr.ProfileDto;
-import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -40,7 +40,7 @@ public class MetaMsgrSvc {
   @Inject
   MetaApiKeyConfig metaApiKeyConfig;
 
-  public Uni<String> sendMsg(String msg, String recipientId) {
+  public Uni<MsgrReqReply> sendMsg(String msg, String recipientId) {
     ProfileDto recipient = new ProfileDto();
     recipient.setId(recipientId);
     MsgDtlDto msgDtl = new MsgDtlDto();
@@ -53,7 +53,6 @@ public class MetaMsgrSvc {
         msgDtl.toJsonStr(),
         metaApiKeyConfig.getPageAccessToken()
     ).map(resp -> {
-      Log.info("messenger response: " + resp.getEntity());
       if (resp.getStatus() == RestResponse.StatusCode.OK) {
         return resp.getEntity();
       } else {
