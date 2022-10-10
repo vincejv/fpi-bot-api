@@ -53,7 +53,7 @@ public class MetaMsgrSvc {
         msgDtl.toJsonStr(),
         metaApiKeyConfig.getPageAccessToken()
     ).map(resp -> {
-      Log.info("messenger response: " + resp);
+      Log.info("messenger response: " + resp.getEntity());
       if (resp.getStatus() == RestResponse.StatusCode.OK) {
         return resp.getEntity();
       } else {
