@@ -52,18 +52,18 @@ public class MetaMsgEvtPcsr {
           if (session.getStatus() == SessionDto.SessionStatus.ESTABLISHED) {
             return metaMsgrSvc.sendMsg("Authenticated", evt.getSender());
           }
-          return sendUnauthorizedMsg(evt);
+          return sendUnauthorizedMsg(evt, session.getStatus().toString());
         })
         // login failures
-        .onFailure().recoverWithUni(() -> sendUnauthorizedMsg(evt))
+        .onFailure().recoverWithUni(throwable -> sendUnauthorizedMsg(evt, throwable.getMessage()))
         .replaceWithVoid();
     }
 
     return Uni.createFrom().voidItem();
   }
 
-  private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt) {
-    return metaMsgrSvc.sendMsg("Unauthorized user", evt.getSender()).replaceWithVoid();
+  private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
+    return metaMsgrSvc.sendMsg("Unauthorized user" + msg, evt.getSender()).replaceWithVoid();
   }
 
 }
