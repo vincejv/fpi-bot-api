@@ -49,7 +49,8 @@ public class MetaMsgEvtPcsr {
       WebhookLoginDto login = new WebhookLoginDto();
       login.setUsername(metaId);
       return loginApi.webhookAuthenticate(login).chain(session -> {
-          if (session.getStatus() == SessionDto.SessionStatus.ESTABLISHED) {
+          if (StringUtils.equals(session.getStatus(),
+            SessionDto.SessionStatus.ESTABLISHED.toString())) {
             return metaMsgrSvc.sendMsg("Authenticated", evt.getSender());
           }
           return sendUnauthorizedMsg(evt, session.getStatus().toString());
