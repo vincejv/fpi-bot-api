@@ -22,9 +22,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.service.MetaMsgrSvc;
-import com.abavilla.fpi.login.dto.SessionDto;
-import com.abavilla.fpi.login.dto.WebhookLoginDto;
-import com.abavilla.fpi.login.rest.ext.TrustedLoginApi;
+import com.abavilla.fpi.load.ext.dto.QueryDto;
+import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
+import com.abavilla.fpi.login.ext.dto.SessionDto;
+import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
+import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.config.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.dto.msgr.ext.MetaMsgEvtDto;
 import io.quarkus.vertx.ConsumeEvent;
@@ -37,6 +39,9 @@ public class MetaMsgEvtPcsr {
 
   @RestClient
   TrustedLoginApi loginApi;
+
+  @RestClient
+  LoadQueryApi loadApi;
 
   @Inject
   MetaMsgrSvc metaMsgrSvc;
@@ -51,9 +56,13 @@ public class MetaMsgEvtPcsr {
       return loginApi.webhookAuthenticate(login).chain(session -> {
           if (StringUtils.equals(session.getStatus(),
             SessionDto.SessionStatus.ESTABLISHED.toString())) {
-            return metaMsgrSvc.sendMsg("Authenticated", evt.getSender());
+            var query = new QueryDto();
+            query.setQuery(evt.getContent());
+            return loadApi.query(query).chain(resp -> {
+              return sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus());
+            });
           }
-          return sendUnauthorizedMsg(evt, session.getStatus().toString());
+          return sendUnauthorizedMsg(evt, session.getStatus());
         })
         // login failures
         .onFailure().recoverWithUni(throwable -> sendUnauthorizedMsg(evt, throwable.getMessage()))
@@ -64,7 +73,11 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
-    return metaMsgrSvc.sendMsg("Unauthorized user" + msg, evt.getSender()).replaceWithVoid();
+    return sendMsgrMsg(evt, "Unauthorized user" + msg);
+  }
+
+  private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
+    return metaMsgrSvc.sendMsg(msg, evt.getSender()).replaceWithVoid();
   }
 
 }

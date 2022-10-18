@@ -11,6 +11,9 @@ quarkus:
     login-api:
       url: ${LOGIN_BASE_URI}
       scope: javax.inject.Singleton
+    user-api:
+      url: ${USER_BASE_URI}
+      scope: javax.inject.Singleton
     meta-graph-api:
       url: ${META_GRAPH_API_BASE_URI}
       scope: javax.inject.Singleton
