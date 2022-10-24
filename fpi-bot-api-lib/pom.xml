@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <licenses>
+    <license>
+      <name>The GNU General Public License v3.0</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Vince Jerald Villamora</name>
+      <email>vincevillamora@gmail.com</email>
+      <organization>Abavilla</organization>
+      <organizationUrl>https://github.com/vincejv</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/vincejv/fpi-bot-api</url>
+    <connection>scm:git:git://github.com/vincejv/fpi-bot-api.git</connection>
+    <developerConnection>scm:git:git@github.com:vincejv/fpi-bot-api.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <name>FPI Bot API shared library</name>
+  <description>Messenger, Telegram &amp; Viber bots for FPI System</description>
+  <url>https://github.com/vincejv/fpi-bot-api</url>
+  <inceptionYear>2022</inceptionYear>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>fpi-bot-api-lib</artifactId>
+  <version>0</version>
+  
+  <parent>
+    <artifactId>fpi-bot-api</artifactId>
+    <groupId>com.abavilla</groupId>
+    <version>0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+
+  </properties>
+
+  <dependencies>
+
+  </dependencies>
+  <build>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

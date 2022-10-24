@@ -16,8 +16,8 @@
   ~ You should have received a copy of the GNU General Public License         ~
   ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.    ~
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <licenses>
     <license>
       <name>The GNU General Public License v3.0</name>
@@ -41,59 +41,75 @@
     <tag>HEAD</tag>
   </scm>
 
-  <name>FPI Bot API parent POM</name>
+  <name>FPI Bot API core module</name>
   <description>Messenger, Telegram &amp; Viber bots for FPI System</description>
-  <url>https://github.com/vincejv/fpi-load-api</url>
+  <url>https://github.com/vincejv/fpi-bot-api</url>
   <inceptionYear>2022</inceptionYear>
-
-  <parent>
-    <groupId>com.abavilla</groupId>
-    <artifactId>fpi-framework-pom</artifactId>
-    <version>1.1.21</version>
-  </parent>
-
+  
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>fpi-bot-api</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>fpi-bot-api-core</artifactId>
   <version>0</version>
-
-  <modules>
-    <module>fpi-bot-api-lib</module>
-    <module>fpi-bot-api-core</module>
-  </modules>
+  
+  <parent>
+    <artifactId>fpi-bot-api</artifactId>
+    <groupId>com.abavilla</groupId>
+    <version>0</version>
+  </parent>
 
   <properties>
 
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
+  <dependencies>
 
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-bot-api-lib</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-meta-plugin-lib</artifactId>
+    </dependency>
 
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-meta-plugin-lib</artifactId>
-        <version>1.0.15</version>
-      </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-vertx</artifactId>
+    </dependency>
 
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-login-api-lib</artifactId>
-        <version>1.0.25</version>
-      </dependency>
+    <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-login-api-lib</artifactId>
+    </dependency>
 
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.43</version>
-      </dependency>
+    <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-load-api-lib</artifactId>
+    </dependency>
 
-    </dependencies>
-  </dependencyManagement>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </build>
 
 </project>

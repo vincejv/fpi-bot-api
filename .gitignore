@@ -42,3 +42,6 @@ nb-configuration.xml
 
 # Prod Keys
 **/*application-prod.yml
+
+# Versioning plugin
+.git-versioned-pom.xml
