@@ -166,6 +166,7 @@ jobs:
             USER_BASE_URI=${{ secrets.USER_BASE_URI }}
             META_FB_PAGE_ACCESS_TOKEN=${{ secrets.META_FB_PAGE_ACCESS_TOKEN }}
             META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
+            LOAD_API_BASE_URI=${{ secret.LOAD_API_BASE_URI }}
           secrets: |
             MONGO_CONN_STRING=vbl_mongo_connection_string:latest
             OIDC_SECRET=oidc_secret_keycloak:latest
