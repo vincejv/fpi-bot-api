@@ -58,7 +58,7 @@ public class MetaMsgEvtPcsr {
             SessionDto.SessionStatus.ESTABLISHED.toString())) {
             var query = new QueryDto();
             query.setQuery(evt.getContent());
-            return loadApi.query(query, session.getResp().getAccessToken()).chain(resp ->
+            return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp ->
               sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus())
             );
           }
@@ -73,7 +73,7 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
-    return sendMsgrMsg(evt, "Unauthorized user" + msg);
+    return sendMsgrMsg(evt, "Unauthorized user: " + msg);
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
