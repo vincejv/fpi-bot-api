@@ -38,9 +38,9 @@ steps:
       - '--platform=managed'
       - '--image=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
       - >-
-        --update-env-vars=OIDC_CLIENT_ID=$_OIDC_CLIENT_ID,OIDC_AUTH_URL=$_OIDC_AUTH_URL,META_GRAPH_API_BASE_API=$_META_GRAPH_API_BASE_API,META_FB_PAGE_ID=$_META_FB_PAGE_ID
+        --set-env-vars=OIDC_CLIENT_ID=$_OIDC_CLIENT_ID,OIDC_AUTH_URL=$_OIDC_AUTH_URL,LOGIN_BASE_URI=$_LOGIN_BASE_URI,META_GRAPH_API_BASE_URI=$_META_GRAPH_API_BASE_URI,META_FB_PAGE_ID=$_META_FB_PAGE_ID,META_FB_VRFY_TOKEN=$_META_FB_VRFY_TOKEN,FPI_APP_TO_APP_USERN=$_FPI_APP_TO_APP_USERN,USER_BASE_URI=$_USER_BASE_URI
       - >-
-        --update-secrets=MONGO_CONN_STRING=vbl_mongo_connection_string:latest,OIDC_SECRET=oidc_secret_keycloak:latest,META_FB_VRFY_TOKEN=meta_fb_verify_token:latest,META_FB_APP_SECRET=meta_fb_app_secret:latest,META_FB_PAGE_ACCESS_TOKEN=meta_fb_page_access_token:latest
+        --set-secrets=MONGO_CONN_STRING=vbl_mongo_connection_string:latest,OIDC_SECRET=oidc_secret_keycloak:latest,META_FB_APP_SECRET=meta_fb_app_secret:latest,META_FB_PAGE_ACCESS_TOKEN=meta_fb_page_access_token:latest,FPI_APP_TO_APP_PASSW=fpi_bot_api_creds_secret_key:latest
       - >-
         --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS
       - '--cpu=1000m'
@@ -60,8 +60,6 @@ steps:
       - '--region=$_DEPLOY_REGION'
     id: "Configure cloud run"
     entrypoint: gcloud
-images:
-  - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
 options:
   machineType: E2_HIGHCPU_8
   substitutionOption: ALLOW_LOOSE

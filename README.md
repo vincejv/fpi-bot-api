@@ -1,4 +1,4 @@
-# Abavilla FPI Login API Project
+# Abavilla FPI BOT API Project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 

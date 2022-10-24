@@ -1,0 +1,47 @@
+quarkus:
+  http:
+    port: ${PORT:8080}
+  mongodb:
+    connection-string:
+      ${MONGO_CONN_STRING:mongodb://localhost}
+    database: vbl
+  rest-client:
+    connect-timeout: 120000
+    read-timeout: 120000
+    login-api:
+      url: ${LOGIN_BASE_URI}
+      scope: javax.inject.Singleton
+    user-api:
+      url: ${USER_BASE_URI}
+      scope: javax.inject.Singleton
+    meta-graph-api:
+      url: ${META_GRAPH_API_BASE_URI}
+      scope: javax.inject.Singleton
+  oidc:
+    auth-server-url: ${OIDC_AUTH_URL:https://localhost:8543/realms/quarkus}
+    client-id: ${OIDC_CLIENT_ID:backend-api}
+    credentials:
+      secret: ${OIDC_SECRET:AABBCC}
+    tls:
+      verification: none
+  keycloak:
+    policy-enforcer:
+      enable: true
+      paths:
+        '1':
+          path: /fpi/webhook/*
+          enforcement-mode: DISABLED
+
+com:
+  meta:
+    facebook:
+      verify-token: ${META_FB_VRFY_TOKEN:FPIMETAVRFYQsARvSdfggYQS}
+      app-secret: ${META_FB_APP_SECRET:ABCJSOWE1234}
+      page-id: ${META_FB_PAGE_ID:ABCJSOWE1234}
+      page-access-token: ${META_FB_PAGE_ACCESS_TOKEN:ABCJSOWE1234}
+
+fpi:
+  app-to-app:
+    auth:
+      username: ${FPI_APP_TO_APP_USERN:username}
+      password: ${FPI_APP_TO_APP_PASSW:password}
