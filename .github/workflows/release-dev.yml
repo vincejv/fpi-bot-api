@@ -154,7 +154,7 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ steps.image_version.outputs.service_image_path }}
           project_id: ${{ env.PROJECT_ID }}
-          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }}
+          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }} --timeout 900 --no-cpu-throttling
           env_vars: |
             DB_NAME=bot-api-dev
             OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
