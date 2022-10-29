@@ -198,6 +198,7 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
           flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }}
           env_vars: |
+            DB_NAME=bot-api-prod
             OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
             OIDC_AUTH_URL=${{ secrets.OIDC_AUTH_URL }}
             LOGIN_BASE_URI=${{ secrets.LOGIN_BASE_URI }}
