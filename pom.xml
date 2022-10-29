@@ -84,13 +84,13 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-login-api-lib</artifactId>
-        <version>1.0.26-46c9f12-SNAPSHOT</version>
+        <version>1.0.26-f2ce75f-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.43-14604db-SNAPSHOT</version>
+        <version>1.0.43-f37094d-SNAPSHOT</version>
       </dependency>
 
     </dependencies>
