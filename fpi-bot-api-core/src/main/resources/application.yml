@@ -13,6 +13,8 @@ quarkus:
   rest-client:
     connect-timeout: 120000
     read-timeout: 120000
+    providers:
+      com.abavilla.fpi.fw.exceptions.handler.ApiRepoExHandler: 5000
     login-api:
       url: ${LOGIN_BASE_URI}
       scope: javax.inject.Singleton
