@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.service.MetaMsgrSvc;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
-import com.abavilla.fpi.fw.exceptions.FPISvcEx;
+import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
 import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
 import com.abavilla.fpi.login.ext.dto.SessionDto;
@@ -72,8 +72,8 @@ public class MetaMsgEvtPcsr {
           return sendUnauthorizedMsg(evt, session.getStatus());
         })
         // login failures
-        .onFailure(FPISvcEx.class).recoverWithUni(apiSvcEx -> sendUnauthorizedMsg(evt,
-          ((FPISvcEx)apiSvcEx).getEntity(RespDto.class).getError()))
+        .onFailure(ApiSvcEx.class).recoverWithUni(apiSvcEx -> sendUnauthorizedMsg(evt,
+          ((ApiSvcEx)apiSvcEx).getJsonResponse(RespDto.class).getError()))
         .onFailure().recoverWithItem(sendMsgEx -> {
           Log.info("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
           return null;
