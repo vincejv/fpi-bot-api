@@ -29,6 +29,7 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
+import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
@@ -54,13 +55,15 @@ public class MetaMsgEvtPcsr {
       WebhookLoginDto login = new WebhookLoginDto();
       login.setUsername(metaId);
       return loginApi.webhookAuthenticate(login).chain(session -> {
+          Log.info("Authenticated user: " + login.getUsername());
           if (StringUtils.equals(session.getStatus(),
             SessionDto.SessionStatus.ESTABLISHED.toString())) {
             var query = new QueryDto();
             query.setQuery(evt.getContent());
-            return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp ->
-              sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus())
-            );
+            return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
+              Log.info("Query received, response is " + resp);
+              return sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus());
+            });
           }
           return sendUnauthorizedMsg(evt, session.getStatus());
         })
