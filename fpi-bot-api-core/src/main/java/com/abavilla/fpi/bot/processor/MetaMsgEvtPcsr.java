@@ -49,13 +49,15 @@ public class MetaMsgEvtPcsr {
 
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
+    Log.info("Processing event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
       // verify if person is registered
       var metaId = evt.getSender();
       WebhookLoginDto login = new WebhookLoginDto();
       login.setUsername(metaId);
+      Log.info("Authenticating user: " + login.getUsername());
       return loginApi.webhookAuthenticate(login).chain(session -> {
-          Log.info("Authenticated user: " + login.getUsername());
+          Log.info("Authenticated: " + login.getUsername());
           if (StringUtils.equals(session.getStatus(),
             SessionDto.SessionStatus.ESTABLISHED.toString())) {
             var query = new QueryDto();
@@ -76,6 +78,7 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
+    Log.info("Unauthorized access: " + msg + " event: " + evt);
     return sendMsgrMsg(evt, "Unauthorized user: " + msg);
   }
 
