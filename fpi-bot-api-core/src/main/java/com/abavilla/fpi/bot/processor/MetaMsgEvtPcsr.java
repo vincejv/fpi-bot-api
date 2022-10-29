@@ -71,6 +71,10 @@ public class MetaMsgEvtPcsr {
         })
         // login failures
         .onFailure().recoverWithUni(throwable -> sendUnauthorizedMsg(evt, throwable.getMessage()))
+        .onFailure().recoverWithItem(throwable -> {
+          Log.info("Message sending failed: " + throwable.getMessage(), throwable);
+          return null;
+        })
         .replaceWithVoid();
     }
 
@@ -78,11 +82,11 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
-    Log.info("Unauthorized access: " + msg + " event: " + evt);
     return sendMsgrMsg(evt, "Unauthorized user: " + msg);
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
+    Log.info("Sending msgr msg: " + msg + " event: " + evt);
     return metaMsgrSvc.sendMsg(msg, evt.getSender()).replaceWithVoid();
   }
 
