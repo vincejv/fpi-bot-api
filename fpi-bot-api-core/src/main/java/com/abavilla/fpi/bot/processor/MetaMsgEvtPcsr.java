@@ -72,8 +72,11 @@ public class MetaMsgEvtPcsr {
           return sendMsgrMsg(evt, session.getStatus());
         })
         // login failures
-        .onFailure(ApiSvcEx.class).recoverWithUni(apiSvcEx -> sendUnauthorizedMsg(evt,
-          ((ApiSvcEx)apiSvcEx).getJsonResponse(RespDto.class).getError()))
+        .onFailure(ApiSvcEx.class).recoverWithUni(apiSvcEx -> {
+          Log.error("Error while processing evt: " + evt, apiSvcEx);
+          return sendUnauthorizedMsg(evt,
+            ((ApiSvcEx) apiSvcEx).getJsonResponse(RespDto.class).getError());
+        })
         .onFailure().recoverWithItem(sendMsgEx -> {
           Log.info("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
           return null;
