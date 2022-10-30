@@ -69,7 +69,7 @@ public class MetaMsgEvtPcsr {
               return sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus());
             });
           }
-          return sendUnauthorizedMsg(evt, session.getStatus());
+          return sendMsgrMsg(evt, session.getStatus());
         })
         // login failures
         .onFailure(ApiSvcEx.class).recoverWithUni(apiSvcEx -> sendUnauthorizedMsg(evt,
