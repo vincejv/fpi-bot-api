@@ -54,9 +54,9 @@ public class MetaMsgEvtPcsr {
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received event: " + evt);
-    return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
-      Log.info("Processing event: " + evt);
-      if (StringUtils.isNotBlank(evt.getContent())) {
+    if (StringUtils.isNotBlank(evt.getContent())) {
+      return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
+        Log.info("Processing event: " + evt);
         // verify if person is registered
         var metaId = evt.getSender();
         WebhookLoginDto login = new WebhookLoginDto();
@@ -70,9 +70,9 @@ public class MetaMsgEvtPcsr {
           // failures to send messenger
           .onFailure().recoverWithItem(this::handleMsgEx)
           .replaceWithVoid();
-      }
-      return Uni.createFrom().voidItem();
-    }).onFailure().recoverWithItem(this::handleMsgEx);
+      }).onFailure().recoverWithItem(this::handleMsgEx);
+    }
+    return Uni.createFrom().voidItem();
   }
 
   private Uni<Void> processLoadQuery(LoginDto login, RespDto<SessionDto> session, MetaMsgEvtDto evt) {
