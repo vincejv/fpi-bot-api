@@ -21,9 +21,13 @@ package com.abavilla.fpi.bot.processor;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
+import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
+import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.bot.service.MetaMsgrApiSvc;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
+import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
 import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
 import com.abavilla.fpi.login.ext.dto.LoginDto;
@@ -51,25 +55,37 @@ public class MetaMsgEvtPcsr {
   @Inject
   MetaMsgrApiSvc metaMsgrSvc;
 
+  @Inject
+  MetaMsgEvtMapper metaMsgEvtMapper;
+
+  @Inject
+  MetaMsgEvtRepo metaMsgEvtRepo;
+
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
       return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
         Log.info("Processing event: " + evt);
-        // verify if person is registered
-        var metaId = evt.getSender();
-        WebhookLoginDto login = new WebhookLoginDto();
-        login.setUsername(metaId);
-        Log.info("Authenticating user: " + login.getUsername());
-        return loginApi.webhookAuthenticate(login)
-          // process load
-          .chain(session -> processLoadQuery(login, session, evt))
-          // login failures
-          .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex))
-          // failures to send messenger
-          .onFailure().recoverWithItem(this::handleMsgEx)
-          .replaceWithVoid();
+        MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
+        metaMsgEvt.setDateCreated(DateUtil.now());
+        metaMsgEvt.setDateUpdated(DateUtil.now());
+        return metaMsgEvtRepo.persist(metaMsgEvt).chain(() -> {
+          Log.info("Logged to db: " + metaMsgEvt.getMetaMsgId());
+          // verify if person is registered
+          var metaId = evt.getSender();
+          WebhookLoginDto login = new WebhookLoginDto();
+          login.setUsername(metaId);
+          Log.info("Authenticating user: " + login.getUsername());
+          return loginApi.webhookAuthenticate(login)
+            // process load
+            .chain(session -> processLoadQuery(login, session, evt))
+            // login failures
+            .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex))
+            // failures to send messenger
+            .onFailure().recoverWithItem(this::handleMsgEx)
+            .replaceWithVoid();
+        });
       }).onFailure().recoverWithItem(this::handleMsgEx);
     }
     return Uni.createFrom().voidItem();

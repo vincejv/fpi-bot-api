@@ -26,12 +26,9 @@ import javax.ws.rs.core.Response;
 
 import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
-import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
-import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
-import com.abavilla.fpi.fw.service.AbsRepoSvc;
-import com.abavilla.fpi.fw.util.DateUtil;
+import com.abavilla.fpi.fw.service.AbsSvc;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.MetaHookEvtDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
@@ -43,7 +40,7 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
-public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMsgEvtRepo> {
+public class MetaMsgEvtSvc extends AbsSvc<MetaHookEvtDto, MetaMsgEvt> {
 
   @Inject
   MetaApiKeyConfig metaApiKeyConfig;
@@ -54,23 +51,14 @@ public class MetaMsgEvtSvc extends AbsRepoSvc<MetaHookEvtDto, MetaMsgEvt, MetaMs
   @Inject
   MetaHookEvtMapper metaHookEvtMapper;
 
-  @Inject
-  MetaMsgEvtMapper metaMsgEvtMapper;
-
   public Uni<Void> processWebhook(MetaHookEvtDto event) {
     List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
-    List<MetaMsgEvt> entities = metaMsgEvtDtos.stream()
-        .map(dto -> {
-          bus.send("meta-msg-evt", dto,
-              new DeliveryOptions().setCodecName(MetaMsgEvtCodec.class.getName()));
-          Log.info("Sent to event bus " + dto.getMetaMsgId());
-          MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(dto);
-          metaMsgEvt.setDateCreated(DateUtil.now());
-          metaMsgEvt.setDateUpdated(DateUtil.now());
-          return metaMsgEvt;
-        }).toList();
-
-    return repo.persist(entities).replaceWithVoid();
+    for (MetaMsgEvtDto dto : metaMsgEvtDtos) {
+      bus.send("meta-msg-evt", dto,
+        new DeliveryOptions().setCodecName(MetaMsgEvtCodec.class.getName()));
+      Log.info("Sent to event bus for processing" + dto.getMetaMsgId());
+    }
+    return Uni.createFrom().voidItem();
   }
 
 
