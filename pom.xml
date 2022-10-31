@@ -49,7 +49,7 @@
   <parent>
     <groupId>com.abavilla</groupId>
     <artifactId>fpi-framework-pom</artifactId>
-    <version>1.1.31</version>
+    <version>1.1.32</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -78,19 +78,19 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-meta-plugin-lib</artifactId>
-        <version>1.0.15-8d6e354-SNAPSHOT</version>
+        <version>1.0.15-9f2a1ca-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-login-api-lib</artifactId>
-        <version>1.0.26-6820145-SNAPSHOT</version>
+        <version>1.0.26-7b90e01-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.43-0bd2bbe-SNAPSHOT</version>
+        <version>1.0.43-d418614-SNAPSHOT</version>
       </dependency>
 
     </dependencies>
