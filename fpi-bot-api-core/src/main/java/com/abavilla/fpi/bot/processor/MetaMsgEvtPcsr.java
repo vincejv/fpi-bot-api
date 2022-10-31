@@ -36,7 +36,8 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
-import com.mongodb.DuplicateKeyException;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoWriteException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
@@ -86,7 +87,10 @@ public class MetaMsgEvtPcsr {
             // failures to send messenger
             .onFailure().recoverWithItem(this::handleMsgEx)
             .replaceWithVoid();
-        }).onFailure(DuplicateKeyException.class).recoverWithUni(throwable -> {
+        })
+        .onFailure(ex -> ex instanceof MongoWriteException wEx &&
+          wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
+        .recoverWithUni(throwable -> {
           Log.warn("Received duplicate mid: " + evt.getMetaMsgId());
           return Uni.createFrom().voidItem();
         });
