@@ -25,18 +25,15 @@ import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
 import com.abavilla.fpi.bot.entity.enums.SenderAction;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
+import com.abavilla.fpi.fw.rest.AbsApiSvc;
 import com.abavilla.fpi.meta.ext.dto.msgr.MsgDtlDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.MsgrReqReply;
 import com.abavilla.fpi.meta.ext.dto.msgr.ProfileDto;
 import io.smallrye.mutiny.Uni;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
-public class MetaMsgrSvc {
-
-  @RestClient
-  MetaGraphApi metaGraphApi;
+public class MetaMsgrApiSvc extends AbsApiSvc<MetaGraphApi> {
 
   @Inject
   MetaApiKeyConfig metaApiKeyConfig;
@@ -47,7 +44,7 @@ public class MetaMsgrSvc {
     var msgDtl = new MsgDtlDto();
     msgDtl.setText(msg);
 
-    return metaGraphApi.sendMsgrMsg(
+    return client.sendMsgrMsg(
         metaApiKeyConfig.getPageId(),
         recipient.toJsonStr(),
         "RESPONSE",
@@ -59,7 +56,7 @@ public class MetaMsgrSvc {
   public Uni<MsgrReqReply> sendTypingIndicator(String recipientId) {
     var recipient = new ProfileDto();
     recipient.setId(recipientId);
-    return metaGraphApi.sendTypingIndicator(
+    return client.sendTypingIndicator(
       metaApiKeyConfig.getPageId(),
       recipient.toJsonStr(),
       SenderAction.TYPING_ON.toString(),

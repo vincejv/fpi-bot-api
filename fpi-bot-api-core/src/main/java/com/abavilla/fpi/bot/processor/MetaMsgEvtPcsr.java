@@ -21,7 +21,7 @@ package com.abavilla.fpi.bot.processor;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.abavilla.fpi.bot.service.MetaMsgrSvc;
+import com.abavilla.fpi.bot.service.MetaMsgrApiSvc;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
@@ -49,7 +49,7 @@ public class MetaMsgEvtPcsr {
   LoadQueryApi loadApi;
 
   @Inject
-  MetaMsgrSvc metaMsgrSvc;
+  MetaMsgrApiSvc metaMsgrSvc;
 
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
