@@ -72,7 +72,7 @@ public class MetaMsgEvtPcsr {
           .replaceWithVoid();
       }
       return Uni.createFrom().voidItem();
-    });
+    }).onFailure().recoverWithItem(this::handleMsgEx);
   }
 
   private Uni<Void> processLoadQuery(LoginDto login, RespDto<SessionDto> session, MetaMsgEvtDto evt) {
