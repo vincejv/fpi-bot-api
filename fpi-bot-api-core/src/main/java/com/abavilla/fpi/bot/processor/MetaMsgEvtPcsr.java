@@ -54,7 +54,7 @@ public class MetaMsgEvtPcsr {
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received event: " + evt);
-    return metaMsgrSvc.sendTypingIndicator(evt.getRecipient()).chain(() -> {
+    return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
       Log.info("Processing event: " + evt);
       if (StringUtils.isNotBlank(evt.getContent())) {
         // verify if person is registered
