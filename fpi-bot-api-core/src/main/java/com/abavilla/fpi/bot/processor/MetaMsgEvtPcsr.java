@@ -36,6 +36,7 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
+import com.mongodb.DuplicateKeyException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
@@ -66,7 +67,7 @@ public class MetaMsgEvtPcsr {
     Log.info("Received event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
       return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
-        Log.info("Processing event: " + evt);
+        Log.info("Processing event: " + evt.getMetaMsgId());
         MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
         metaMsgEvt.setDateCreated(DateUtil.now());
         metaMsgEvt.setDateUpdated(DateUtil.now());
@@ -85,6 +86,9 @@ public class MetaMsgEvtPcsr {
             // failures to send messenger
             .onFailure().recoverWithItem(this::handleMsgEx)
             .replaceWithVoid();
+        }).onFailure(DuplicateKeyException.class).recoverWithUni(throwable -> {
+          Log.warn("Received duplicate mid: " + evt.getMetaMsgId());
+          return Uni.createFrom().voidItem();
         });
       }).onFailure().recoverWithItem(this::handleMsgEx);
     }
@@ -111,7 +115,7 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
-    Log.error("Error while processing evt: " + evt, ex);
+    Log.error("Error while processing evt: " + evt.getMetaMsgId(), ex);
     var apiSvcEx = (ApiSvcEx) ex;
     if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
       return sendMsgrMsg(evt,
@@ -122,7 +126,7 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
-    Log.info("Sending msgr msg: " + msg + " event: " + evt);
+    Log.info("Sending msgr msg: " + msg + " event: " + evt.getMetaMsgId());
     return metaMsgrSvc.sendMsg(msg, evt.getSender()).replaceWithVoid();
   }
 
