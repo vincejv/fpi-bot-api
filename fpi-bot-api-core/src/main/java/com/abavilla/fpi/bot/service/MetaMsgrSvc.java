@@ -22,6 +22,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
+import com.abavilla.fpi.bot.entity.enums.SenderAction;
 import com.abavilla.fpi.bot.rest.MetaGraphApi;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.meta.ext.dto.msgr.MsgDtlDto;
@@ -59,6 +60,18 @@ public class MetaMsgrSvc {
         throw new FPISvcEx("Unable to send messenger reply");
       }
     });
+  }
+
+  public Uni<Void> sendTypingIndicator(String recipientId) {
+    ProfileDto recipient = new ProfileDto();
+    recipient.setId(recipientId);
+    return metaGraphApi.sendMsgrMsg(
+      metaApiKeyConfig.getPageId(),
+      recipient.toJsonStr(),
+      SenderAction.TYPING_ON.toString(),
+      "RESPONSE",
+      metaApiKeyConfig.getPageAccessToken()
+    ).replaceWithVoid();
   }
 
 }

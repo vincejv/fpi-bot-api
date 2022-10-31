@@ -50,6 +50,16 @@ public interface MetaGraphApi extends IApi {
       @QueryParam("access_token") String token
   );
 
+  @POST
+  @Path("v15.0/{pageId}/messages")
+  Uni<RestResponse<MsgrReqReply>> sendTypingIndicator(
+    @PathParam("pageId") String pageId,
+    @QueryParam("recipient") String recipient,
+    @QueryParam("sender_action") String senderAction,
+    @QueryParam("messaging_type") String type,
+    @QueryParam("access_token") String token
+  );
+
   @GET
   @Path("{profileId}")
   Uni<RestResponse<ProfileReqReply>> getProfile(
