@@ -77,7 +77,7 @@ public class MetaMsgEvtPcsr {
           Log.error("Error while processing evt: " + evt, ex);
           var apiSvcEx = (ApiSvcEx) ex;
           if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
-            return sendUnauthorizedMsg(evt,
+            return sendMsgrMsg(evt,
               apiSvcEx.getJsonResponse(RespDto.class).getError());
           } else {
             return sendMsgrMsg(evt,"Error occurred, please try again");
@@ -91,10 +91,6 @@ public class MetaMsgEvtPcsr {
     }
 
     return Uni.createFrom().voidItem();
-  }
-
-  private Uni<Void> sendUnauthorizedMsg(MetaMsgEvtDto evt, String msg) {
-    return sendMsgrMsg(evt, "Unauthorized user: " + msg);
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
