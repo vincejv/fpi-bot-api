@@ -65,7 +65,7 @@ public class MetaMsgrSvc {
   public Uni<Void> sendTypingIndicator(String recipientId) {
     ProfileDto recipient = new ProfileDto();
     recipient.setId(recipientId);
-    return metaGraphApi.sendMsgrMsg(
+    return metaGraphApi.sendTypingIndicator(
       metaApiKeyConfig.getPageId(),
       recipient.toJsonStr(),
       SenderAction.TYPING_ON.toString(),
