@@ -42,9 +42,9 @@ public class MetaMsgrSvc {
   MetaApiKeyConfig metaApiKeyConfig;
 
   public Uni<MsgrReqReply> sendMsg(String msg, String recipientId) {
-    ProfileDto recipient = new ProfileDto();
+    var recipient = new ProfileDto();
     recipient.setId(recipientId);
-    MsgDtlDto msgDtl = new MsgDtlDto();
+    var msgDtl = new MsgDtlDto();
     msgDtl.setText(msg);
 
     return metaGraphApi.sendMsgrMsg(
@@ -53,17 +53,11 @@ public class MetaMsgrSvc {
         "RESPONSE",
         msgDtl.toJsonStr(),
         metaApiKeyConfig.getPageAccessToken()
-    ).map(resp -> {
-      if (resp.getStatus() == RestResponse.StatusCode.OK) {
-        return resp.getEntity();
-      } else {
-        throw new FPISvcEx("Unable to send messenger reply");
-      }
-    });
+    ).map(this::mapResponse);
   }
 
-  public Uni<Void> sendTypingIndicator(String recipientId) {
-    ProfileDto recipient = new ProfileDto();
+  public Uni<MsgrReqReply> sendTypingIndicator(String recipientId) {
+    var recipient = new ProfileDto();
     recipient.setId(recipientId);
     return metaGraphApi.sendTypingIndicator(
       metaApiKeyConfig.getPageId(),
@@ -71,7 +65,15 @@ public class MetaMsgrSvc {
       SenderAction.TYPING_ON.toString(),
       "RESPONSE",
       metaApiKeyConfig.getPageAccessToken()
-    ).replaceWithVoid();
+    ).map(this::mapResponse);
+  }
+
+  private MsgrReqReply mapResponse(RestResponse<MsgrReqReply> resp) {
+    if (resp.getStatus() == RestResponse.StatusCode.OK) {
+      return resp.getEntity();
+    } else {
+      throw new FPISvcEx("Unable to send messenger reply");
+    }
   }
 
 }
