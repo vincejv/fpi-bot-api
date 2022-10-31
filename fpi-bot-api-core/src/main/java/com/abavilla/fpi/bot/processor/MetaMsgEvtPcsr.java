@@ -78,7 +78,7 @@ public class MetaMsgEvtPcsr {
             ((ApiSvcEx) apiSvcEx).getJsonResponse(RespDto.class).getError());
         })
         .onFailure().recoverWithItem(sendMsgEx -> {
-          Log.info("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
+          Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
           return null;
         })
         .replaceWithVoid();
