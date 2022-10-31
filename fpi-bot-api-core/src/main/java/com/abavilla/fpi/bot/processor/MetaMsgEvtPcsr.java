@@ -31,6 +31,7 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
@@ -72,10 +73,15 @@ public class MetaMsgEvtPcsr {
           return sendMsgrMsg(evt, session.getStatus());
         })
         // login failures
-        .onFailure(ApiSvcEx.class).recoverWithUni(apiSvcEx -> {
-          Log.error("Error while processing evt: " + evt, apiSvcEx);
-          return sendUnauthorizedMsg(evt,
-            ((ApiSvcEx) apiSvcEx).getJsonResponse(RespDto.class).getError());
+        .onFailure(ApiSvcEx.class).recoverWithUni(ex -> {
+          Log.error("Error while processing evt: " + evt, ex);
+          var apiSvcEx = (ApiSvcEx) ex;
+          if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
+            return sendUnauthorizedMsg(evt,
+              apiSvcEx.getJsonResponse(RespDto.class).getError());
+          } else {
+            return sendMsgrMsg(evt,"Error occurred, please try again");
+          }
         })
         .onFailure().recoverWithItem(sendMsgEx -> {
           Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
