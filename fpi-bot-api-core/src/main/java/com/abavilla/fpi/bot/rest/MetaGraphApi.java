@@ -26,15 +26,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.abavilla.fpi.fw.exceptions.handler.ApiRepoExHandler;
+import com.abavilla.fpi.fw.rest.IApi;
 import com.abavilla.fpi.meta.ext.dto.ProfileReqReply;
 import com.abavilla.fpi.meta.ext.dto.msgr.MsgrReqReply;
 import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @RegisterRestClient(configKey = "meta-graph-api")
 @Produces(MediaType.APPLICATION_JSON)
-public interface MetaGraphApi {
+@RegisterProvider(value = ApiRepoExHandler.class)
+public interface MetaGraphApi extends IApi {
 
   @POST
   @Path("v15.0/{pageId}/messages")
@@ -44,6 +48,16 @@ public interface MetaGraphApi {
       @QueryParam("messaging_type") String type,
       @QueryParam("message") String messageNode,
       @QueryParam("access_token") String token
+  );
+
+  @POST
+  @Path("v15.0/{pageId}/messages")
+  Uni<RestResponse<MsgrReqReply>> sendTypingIndicator(
+    @PathParam("pageId") String pageId,
+    @QueryParam("recipient") String recipient,
+    @QueryParam("sender_action") String senderAction,
+    @QueryParam("messaging_type") String type,
+    @QueryParam("access_token") String token
   );
 
   @GET
