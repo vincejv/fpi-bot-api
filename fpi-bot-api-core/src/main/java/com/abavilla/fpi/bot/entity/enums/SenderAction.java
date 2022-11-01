@@ -50,9 +50,9 @@ public enum SenderAction implements IBaseEnum {
    * @param value the string value
    * @return the created enum
    */
-  @JsonCreator
-  public static IBaseEnum fromValue(String value) {
-    return IBaseEnum.fromValue(value, ENUM_MAP, UNKNOWN);
+  @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+  public static SenderAction fromValue(String value) {
+    return (SenderAction) IBaseEnum.fromValue(value, ENUM_MAP, UNKNOWN);
   }
 
   /**
@@ -61,8 +61,8 @@ public enum SenderAction implements IBaseEnum {
    * @param id the ordinal id
    * @return the created enum
    */
-  public static IBaseEnum fromId(int id) {
-    return IBaseEnum.fromId(id, ENUM_MAP, UNKNOWN);
+  public static SenderAction fromId(int id) {
+    return (SenderAction) IBaseEnum.fromId(id, ENUM_MAP, UNKNOWN);
   }
 
   /**

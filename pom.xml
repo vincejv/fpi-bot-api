@@ -78,19 +78,19 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-meta-plugin-lib</artifactId>
-        <version>1.0.15-9f2a1ca-SNAPSHOT</version>
+        <version>1.0.16</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-login-api-lib</artifactId>
-        <version>1.0.26-7b90e01-SNAPSHOT</version>
+        <version>1.0.27</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.43-bbbcf52-SNAPSHOT</version>
+        <version>1.0.44</version>
       </dependency>
 
     </dependencies>
