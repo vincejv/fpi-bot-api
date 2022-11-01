@@ -15,7 +15,7 @@ env:
   SONAR_PROJECT_KEY: vincejv_fpi-bot-api
   NATIVE_IMAGE_BUILDER: quay.io/quarkus/ubi-quarkus-mandrel:22.2-java17
   SERVICE_CPU: 1000m
-  SERVICE_MEMORY: 384Mi
+  SERVICE_MEMORY: 512Mi
   SERVICE_ENV: prod
 
 jobs:
@@ -50,7 +50,7 @@ jobs:
 
       - name: Bump version and push tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
+        uses: mathieudutour/github-tag-action@v6.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -196,7 +196,7 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ needs.versioning.outputs.service_image_path }}
           project_id: ${{ env.PROJECT_ID }}
-          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }} --cpu-throttling
+          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }} --no-cpu-throttling
           env_vars: |
             DB_NAME=bot-api-prod
             OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
