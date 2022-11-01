@@ -207,6 +207,7 @@ jobs:
             META_FB_VRFY_TOKEN=${{ secrets.META_FB_VRFY_TOKEN }}
             FPI_APP_TO_APP_USERN=${{ secrets.FPI_APP_TO_APP_USERN }}
             USER_BASE_URI=${{ secrets.USER_BASE_URI }}
+            LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
           secrets: |
             MONGO_CONN_STRING=vbl_mongo_connection_string:latest
             OIDC_SECRET=oidc_secret_keycloak:latest
