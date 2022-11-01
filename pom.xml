@@ -90,7 +90,7 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.44</version>
+        <version>1.0.45</version>
       </dependency>
 
     </dependencies>
