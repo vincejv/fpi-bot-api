@@ -12,7 +12,7 @@ env:
   REGION: asia-east1
   SONAR_PROJECT_KEY: vincejv_fpi-bot-api
   SERVICE_CPU: 1000m
-  SERVICE_MEMORY: 768Mi
+  SERVICE_MEMORY: 512Mi
   SERVICE_ENV: dev
 
 jobs:
