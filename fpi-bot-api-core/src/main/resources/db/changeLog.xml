@@ -1,0 +1,24 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <changeSet id="1" author="vincejv" labels="bot_api" context="main">
+    <comment>initial bot api schema</comment>
+    <ext:createCollection collectionName="event_log"/>
+
+    <ext:createIndex collectionName="event_log">
+      <ext:keys>{metaMsgId: 1}</ext:keys>
+      <ext:options>{unique: true, name: "metaMsgId"}</ext:options> <!-- every customer name is unique -->
+    </ext:createIndex>
+    <ext:createIndex collectionName="event_log">
+      <ext:keys>{timestamp: -1}</ext:keys>
+      <ext:options>{name: "timestamp"}</ext:options> <!-- every customer name is unique -->
+    </ext:createIndex>
+
+  </changeSet>
+
+</databaseChangeLog>

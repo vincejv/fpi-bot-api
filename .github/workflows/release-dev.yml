@@ -11,9 +11,8 @@ env:
   SERVICE: fpi-bot-api-dev
   REGION: asia-east1
   SONAR_PROJECT_KEY: vincejv_fpi-bot-api
-  NATIVE_IMAGE_BUILDER: quay.io/quarkus/ubi-quarkus-mandrel:22.2-java17
   SERVICE_CPU: 1000m
-  SERVICE_MEMORY: 384Mi
+  SERVICE_MEMORY: 768Mi
   SERVICE_ENV: dev
 
 jobs:
@@ -62,7 +61,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.qualitygate.wait=true
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} -Dsonar.qualitygate.wait=true -P allow-snapshots
 
   deploy_to_cloud:
     name: Deploy to Cloud Run
@@ -102,8 +101,8 @@ jobs:
         run: |
           echo "service_image_path=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GHUB_REPO_NAME }}/${{ env.SERVICE }}:${{ steps.gen_ver.outputs.artifact_version }}" >> $GITHUB_OUTPUT
 
-      - name: Generate native image
-        run: mvn -B package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.builder-image=${{ env.NATIVE_IMAGE_BUILDER }}
+      - name: Create JVM package
+        run: mvn -B package -P allow-snapshots
 
       - name: Google Auth
         id: gcp-auth
@@ -141,6 +140,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          file: Dockerfile.dev
           push: true
           tags: | # ${{ steps.meta.outputs.tags }} - (For public repositories like docker hub)
             ${{ steps.image_version.outputs.service_image_path }}
@@ -154,8 +154,9 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ steps.image_version.outputs.service_image_path }}
           project_id: ${{ env.PROJECT_ID }}
-          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }}
+          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }} --timeout 900 --no-cpu-throttling
           env_vars: |
+            DB_NAME=bot-api-dev
             OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
             OIDC_AUTH_URL=${{ secrets.OIDC_AUTH_URL }}
             LOGIN_BASE_URI=${{ secrets.LOGIN_BASE_URI }}
@@ -164,11 +165,12 @@ jobs:
             META_FB_VRFY_TOKEN=${{ secrets.META_FB_VRFY_TOKEN }}
             FPI_APP_TO_APP_USERN=${{ secrets.FPI_APP_TO_APP_USERN }}
             USER_BASE_URI=${{ secrets.USER_BASE_URI }}
+            LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
+            META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
+            META_FB_PAGE_ACCESS_TOKEN=${{ secrets.META_FB_PAGE_ACCESS_TOKEN }}
           secrets: |
             MONGO_CONN_STRING=vbl_mongo_connection_string:latest
             OIDC_SECRET=oidc_secret_keycloak:latest
-            META_FB_APP_SECRET=meta_fb_app_secret:latest
-            META_FB_PAGE_ACCESS_TOKEN=meta_fb_page_access_token:latest
             FPI_APP_TO_APP_PASSW=fpi_bot_api_creds_secret_key:latest
           labels: |
             env=${{ env.SERVICE_ENV }}
@@ -210,7 +212,7 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        run: mvn -B deploy -Prelease-for-oss
+        run: mvn -B deploy -P release-for-oss,allow-snapshots
 
   pr_update:
     name: Pull request update
