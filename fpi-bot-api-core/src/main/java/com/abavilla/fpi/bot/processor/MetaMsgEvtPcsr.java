@@ -83,18 +83,17 @@ public class MetaMsgEvtPcsr {
             // process load
             .chain(session -> processLoadQuery(login, session, evt))
             // login failures
-            .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex))
+            .onFailure(ApiSvcEx.class).call(ex -> handleApiEx(evt, ex))
             // failures to send messenger
-            .onFailure().recoverWithItem(this::handleMsgEx)
+            .onFailure().invoke(this::handleMsgEx)
             .replaceWithVoid();
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
           wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
-        .recoverWithUni(throwable -> {
-          Log.warn("Received duplicate mid: " + evt.getMetaMsgId());
-          return Uni.createFrom().voidItem();
-        });
-      }).onFailure().recoverWithItem(this::handleMsgEx);
+        .invoke(throwable ->
+          Log.warn("Received duplicate mid: " + evt.getMetaMsgId())
+        );
+      }).onFailure().invoke(this::handleMsgEx);
     }
     return Uni.createFrom().voidItem();
   }
@@ -113,9 +112,8 @@ public class MetaMsgEvtPcsr {
     return sendMsgrMsg(evt, session.getStatus());
   }
 
-  private Void handleMsgEx(Throwable sendMsgEx) {
+  private void handleMsgEx(Throwable sendMsgEx) {
     Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
-    return null;
   }
 
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
