@@ -82,9 +82,9 @@ public class MetaMsgEvtPcsr {
           return loginApi.webhookAuthenticate(login)
             // process load
             .chain(session -> processLoadQuery(login, session, evt))
-            // login failures
+            // login failures/query exceptions
             .onFailure(ApiSvcEx.class).call(ex -> handleApiEx(evt, ex))
-            // failures to send messenger
+            // failures to send response to messenger
             .onFailure().invoke(this::handleMsgEx)
             .replaceWithVoid();
         })
@@ -121,12 +121,20 @@ public class MetaMsgEvtPcsr {
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
     Log.error("Error while processing evt: " + evt.getMetaMsgId(), ex);
     var apiSvcEx = (ApiSvcEx) ex;
+    Uni<Void> handleAction;
+
     if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
-      return sendMsgrMsg(evt,
-        apiSvcEx.getJsonResponse(RespDto.class).getError());
+      var jsonResponse = apiSvcEx.getJsonResponse(RespDto.class);
+      if (jsonResponse != null && StringUtils.isNotBlank(jsonResponse.getError())) {
+        handleAction = sendMsgrMsg(evt, jsonResponse.getError());
+      } else {
+        handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
+      }
     } else {
-      return sendMsgrMsg(evt, "Error occurred, please try again");
+      handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
     }
+
+    return handleAction.chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false).replaceWithVoid());
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
