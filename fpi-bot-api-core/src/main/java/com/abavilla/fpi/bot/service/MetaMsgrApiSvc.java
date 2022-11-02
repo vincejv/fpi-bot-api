@@ -53,13 +53,13 @@ public class MetaMsgrApiSvc extends AbsApiSvc<MetaGraphApi> {
     ).map(this::mapResponse);
   }
 
-  public Uni<MsgrReqReply> sendTypingIndicator(String recipientId) {
+  public Uni<MsgrReqReply> sendTypingIndicator(String recipientId, boolean isTyping) {
     var recipient = new ProfileDto();
     recipient.setId(recipientId);
     return client.sendTypingIndicator(
       metaApiKeyConfig.getPageId(),
       recipient.toJsonStr(),
-      SenderAction.TYPING_ON.toString(),
+      isTyping ? SenderAction.TYPING_ON.getValue() : SenderAction.TYPING_OFF.getValue(),
       "RESPONSE",
       metaApiKeyConfig.getPageAccessToken()
     ).map(this::mapResponse);
