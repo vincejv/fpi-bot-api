@@ -87,9 +87,10 @@ public class MetaMsgEvtPcsr {
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
           wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
-        .recoverWithNull().invoke(throwable ->
-          Log.warn("Received duplicate mid: " + evt.getMetaMsgId())
-        );
+        .recoverWithItem(() -> {
+          Log.warn("Received duplicate mid: " + evt.getMetaMsgId());
+          return null;
+        });
       })
       .chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false)).replaceWithVoid()
       .onFailure().invoke(this::handleMsgEx);
