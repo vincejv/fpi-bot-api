@@ -85,7 +85,7 @@ public class MetaMsgEvtPcsr {
             // login failures/query exceptions
             .onFailure(ApiSvcEx.class).call(ex -> handleApiEx(evt, ex))
             // failures to send response to messenger
-            .onFailure().call(sendMsgEx -> handleMsgEx(sendMsgEx, evt))
+            .onFailure().invoke(this::handleMsgEx)
             .replaceWithVoid();
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
@@ -95,7 +95,7 @@ public class MetaMsgEvtPcsr {
         );
       })
       .chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false)).replaceWithVoid()
-      .onFailure().invoke(sendMsgEx -> handleMsgEx(sendMsgEx, evt));
+      .onFailure().invoke(this::handleMsgEx);
     }
     return Uni.createFrom().voidItem();
   }
@@ -114,20 +114,27 @@ public class MetaMsgEvtPcsr {
     return sendMsgrMsg(evt, session.getStatus());
   }
 
-  private Uni<Void> handleMsgEx(Throwable sendMsgEx, MetaMsgEvtDto evt) {
+  private void handleMsgEx(Throwable sendMsgEx) {
     Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
-    return metaMsgrSvc.sendTypingIndicator(evt.getSender(), false).replaceWithVoid();
   }
 
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
     Log.error("Error while processing evt: " + evt.getMetaMsgId(), ex);
     var apiSvcEx = (ApiSvcEx) ex;
+    Uni<Void> handleAction;
+
     if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
-      return sendMsgrMsg(evt,
-        apiSvcEx.getJsonResponse(RespDto.class).getError());
+      var jsonResponse = apiSvcEx.getJsonResponse(RespDto.class);
+      if (jsonResponse != null && StringUtils.isNotBlank(jsonResponse.getError())) {
+        handleAction = sendMsgrMsg(evt, jsonResponse.getError());
+      } else {
+        handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
+      }
     } else {
-      return sendMsgrMsg(evt, "Error occurred, please try again");
+      handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
     }
+
+    return handleAction.chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false).replaceWithVoid());
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
