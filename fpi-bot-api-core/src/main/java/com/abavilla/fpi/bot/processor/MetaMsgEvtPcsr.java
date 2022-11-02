@@ -67,7 +67,7 @@ public class MetaMsgEvtPcsr {
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
-      return metaMsgrSvc.sendTypingIndicator(evt.getSender()).chain(() -> {
+      return metaMsgrSvc.sendTypingIndicator(evt.getSender(), true).chain(() -> {
         Log.info("Processing event: " + evt.getMetaMsgId());
         MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
         metaMsgEvt.setDateCreated(DateUtil.now());
@@ -93,7 +93,9 @@ public class MetaMsgEvtPcsr {
         .invoke(throwable ->
           Log.warn("Received duplicate mid: " + evt.getMetaMsgId())
         );
-      }).onFailure().invoke(this::handleMsgEx);
+      })
+      .chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false)).replaceWithVoid()
+      .onFailure().invoke(this::handleMsgEx);
     }
     return Uni.createFrom().voidItem();
   }
@@ -106,7 +108,7 @@ public class MetaMsgEvtPcsr {
       query.setQuery(evt.getContent());
       return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
         Log.info("Query received, response is " + resp);
-        return sendMsgrMsg(evt, "Received your query, current status is " + resp.getStatus());
+        return sendMsgrMsg(evt, "Working on your request, status is '%s'".formatted(resp.getStatus()));
       });
     }
     return sendMsgrMsg(evt, session.getStatus());
