@@ -83,14 +83,11 @@ public class MetaMsgEvtPcsr {
             // process load
             .chain(session -> processLoadQuery(login, session, evt))
             // login failures/query exceptions
-            .onFailure(ApiSvcEx.class).call(ex -> handleApiEx(evt, ex))
-            // failures to send response to messenger
-            .onFailure().invoke(this::handleMsgEx)
-            .replaceWithVoid();
+            .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
           wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
-        .invoke(throwable ->
+        .recoverWithNull().invoke(throwable ->
           Log.warn("Received duplicate mid: " + evt.getMetaMsgId())
         );
       })
@@ -134,7 +131,8 @@ public class MetaMsgEvtPcsr {
       handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
     }
 
-    return handleAction.chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false).replaceWithVoid());
+    return handleAction.chain(() -> metaMsgrSvc.sendTypingIndicator(
+      evt.getSender(), false).replaceWithVoid());
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
