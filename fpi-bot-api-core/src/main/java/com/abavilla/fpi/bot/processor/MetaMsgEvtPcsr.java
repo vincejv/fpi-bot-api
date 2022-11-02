@@ -82,10 +82,10 @@ public class MetaMsgEvtPcsr {
           return loginApi.webhookAuthenticate(login)
             // process load
             .chain(session -> processLoadQuery(login, session, evt))
-            // login failures
+            // login failures/query exceptions
             .onFailure(ApiSvcEx.class).call(ex -> handleApiEx(evt, ex))
-            // failures to send messenger
-            .onFailure().invoke(this::handleMsgEx)
+            // failures to send response to messenger
+            .onFailure().call(sendMsgEx -> handleMsgEx(sendMsgEx, evt))
             .replaceWithVoid();
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
@@ -95,7 +95,7 @@ public class MetaMsgEvtPcsr {
         );
       })
       .chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false)).replaceWithVoid()
-      .onFailure().invoke(this::handleMsgEx);
+      .onFailure().invoke(sendMsgEx -> handleMsgEx(sendMsgEx, evt));
     }
     return Uni.createFrom().voidItem();
   }
@@ -114,8 +114,9 @@ public class MetaMsgEvtPcsr {
     return sendMsgrMsg(evt, session.getStatus());
   }
 
-  private void handleMsgEx(Throwable sendMsgEx) {
+  private Uni<Void> handleMsgEx(Throwable sendMsgEx, MetaMsgEvtDto evt) {
     Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
+    return metaMsgrSvc.sendTypingIndicator(evt.getSender(), false).replaceWithVoid();
   }
 
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
