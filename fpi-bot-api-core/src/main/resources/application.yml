@@ -22,8 +22,8 @@ quarkus:
     user-api:
       url: ${USER_BASE_URI}
       scope: javax.inject.Singleton
-    meta-graph-api:
-      url: ${META_GRAPH_API_BASE_URI}
+    msgr-api:
+      url: ${MSGR_API_BASE_URI}
       scope: javax.inject.Singleton
   oidc:
     auth-server-url: ${OIDC_AUTH_URL:https://localhost:8543/realms/quarkus}
@@ -45,8 +45,6 @@ com:
     facebook:
       verify-token: ${META_FB_VRFY_TOKEN:FPIMETAVRFYQsARvSdfggYQS}
       app-secret: ${META_FB_APP_SECRET:ABCJSOWE1234}
-      page-id: ${META_FB_PAGE_ID:ABCJSOWE1234}
-      page-access-token: ${META_FB_PAGE_ACCESS_TOKEN:ABCJSOWE1234}
 
 fpi:
   app-to-app:

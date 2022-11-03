@@ -82,6 +82,11 @@
       <artifactId>fpi-load-api-lib</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-msgr-api-lib</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>

@@ -160,14 +160,12 @@ jobs:
             OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
             OIDC_AUTH_URL=${{ secrets.OIDC_AUTH_URL }}
             LOGIN_BASE_URI=${{ secrets.LOGIN_BASE_URI }}
-            META_GRAPH_API_BASE_URI=${{ secrets.META_GRAPH_API_BASE_URI }}
-            META_FB_PAGE_ID=${{ secrets.META_FB_PAGE_ID }}
             META_FB_VRFY_TOKEN=${{ secrets.META_FB_VRFY_TOKEN }}
+            META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
             FPI_APP_TO_APP_USERN=${{ secrets.FPI_APP_TO_APP_USERN }}
             USER_BASE_URI=${{ secrets.USER_BASE_URI }}
             LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
-            META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
-            META_FB_PAGE_ACCESS_TOKEN=${{ secrets.META_FB_PAGE_ACCESS_TOKEN }}
+            MSGR_API_BASE_URI=${{ secrets.MSGR_API_BASE_URI }}
           secrets: |
             MONGO_CONN_STRING=vbl_mongo_connection_string:latest
             OIDC_SECRET=oidc_secret_keycloak:latest

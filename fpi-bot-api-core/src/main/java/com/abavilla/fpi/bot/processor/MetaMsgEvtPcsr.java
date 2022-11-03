@@ -24,7 +24,6 @@ import javax.inject.Inject;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
-import com.abavilla.fpi.bot.service.MetaMsgrApiSvc;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
 import com.abavilla.fpi.fw.util.DateUtil;
@@ -36,6 +35,8 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
+import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
+import com.abavilla.fpi.msgr.ext.rest.MsgrReqApi;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -43,10 +44,14 @@ import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @ApplicationScoped
 public class MetaMsgEvtPcsr {
+
+  @ConfigProperty(name = "fpi.app-to-app.auth.username")
+  String fpiSystemId;
 
   @RestClient
   TrustedLoginApi loginApi;
@@ -54,8 +59,8 @@ public class MetaMsgEvtPcsr {
   @RestClient
   LoadQueryApi loadApi;
 
-  @Inject
-  MetaMsgrApiSvc metaMsgrSvc;
+  @RestClient
+  MsgrReqApi msgrApi;
 
   @Inject
   MetaMsgEvtMapper metaMsgEvtMapper;
@@ -67,7 +72,7 @@ public class MetaMsgEvtPcsr {
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
-      return metaMsgrSvc.sendTypingIndicator(evt.getSender(), true).chain(() -> {
+      return msgrApi.toggleTyping(evt.getSender(), true).chain(() -> {
         Log.info("Processing event: " + evt.getMetaMsgId());
         MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
         metaMsgEvt.setDateCreated(DateUtil.now());
@@ -92,7 +97,7 @@ public class MetaMsgEvtPcsr {
           return null;
         });
       })
-      .chain(() -> metaMsgrSvc.sendTypingIndicator(evt.getSender(), false)).replaceWithVoid()
+      .chain(() -> msgrApi.toggleTyping(evt.getSender(), false)).replaceWithVoid()
       .onFailure().invoke(this::handleMsgEx);
     }
     return Uni.createFrom().voidItem();
@@ -132,13 +137,16 @@ public class MetaMsgEvtPcsr {
       handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
     }
 
-    return handleAction.chain(() -> metaMsgrSvc.sendTypingIndicator(
+    return handleAction.chain(() -> msgrApi.toggleTyping(
       evt.getSender(), false).replaceWithVoid());
   }
 
   private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
     Log.info("Sending msgr msg: " + msg + " event: " + evt.getMetaMsgId());
-    return metaMsgrSvc.sendMsg(msg, evt.getSender()).replaceWithVoid();
+    var msgReq = new MsgrMsgReqDto();
+    msgReq.setRecipient(evt.getSender());
+    msgReq.setContent(msg);
+    return msgrApi.sendMsg(msgReq, fpiSystemId).replaceWithVoid();
   }
 
 }
