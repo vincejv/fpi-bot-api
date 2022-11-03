@@ -33,10 +33,4 @@ public class MetaApiKeyConfig {
   @ConfigProperty(name = "com.meta.facebook.verify-token")
   String authorizedToken;
 
-  @ConfigProperty(name = "com.meta.facebook.page-access-token")
-  String pageAccessToken;
-
-  @ConfigProperty(name = "com.meta.facebook.page-id")
-  String pageId;
-
 }
