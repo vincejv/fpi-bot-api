@@ -19,27 +19,33 @@
 package com.abavilla.fpi.bot.controller;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
-import com.abavilla.fpi.bot.service.MetaMsgEvtSvc;
+import com.abavilla.fpi.bot.service.WebhookMsgEvtSvc;
 import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.controller.AbsBaseResource;
+import com.abavilla.fpi.fw.dto.IDto;
+import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
 import com.abavilla.fpi.fw.util.MapperUtil;
 import com.abavilla.fpi.fw.util.SigUtil;
 import com.abavilla.fpi.meta.ext.dto.MetaHookEvtDto;
+import com.pengrad.telegrambot.BotUtils;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestHeader;
+import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 @Path("/fpi/webhook")
-public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt, MetaMsgEvtSvc> {
+public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt, WebhookMsgEvtSvc> {
 
   /**
    * Facebook app secret, used in HMAC signature checking
@@ -70,5 +76,25 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
     return service.verifyWebhook(mode, verifyToken, challenge);
   }
 
+  @POST
+  @Path("telegram")
+  public Uni<Void> receiveEventFromTelegram(
+    String evtJsonStr, @HeaderParam("X-Telegram-Bot-Api-Secret-Token") String secretToken
+  ) {
+    if (StringUtils.equals(secretToken, secretToken)) {
+      var evt = BotUtils.parseUpdate(evtJsonStr);
+      return service.processWebhook(evt);
+    }
+    throw new FPISvcEx("Unauthorized secret token", RestResponse.StatusCode.FORBIDDEN);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @ServerExceptionMapper
+  @Override
+  public RestResponse<RespDto<IDto>> mapException(FPISvcEx x) {
+    return super.mapException(x);
+  }
 
 }

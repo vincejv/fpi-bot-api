@@ -49,7 +49,7 @@
   <parent>
     <groupId>com.abavilla</groupId>
     <artifactId>fpi-framework-pom</artifactId>
-    <version>1.1.35</version>
+    <version>1.4.0</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -84,19 +84,25 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-login-api-lib</artifactId>
-        <version>1.0.28</version>
+        <version>1.0.30-995f0c8-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.0.45</version>
+        <version>1.1.0-41ea5da-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-msgr-api-lib</artifactId>
-        <version>1.1.2</version>
+        <version>1.1.2-8bb7ba0-SNAPSHOT</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.github.pengrad</groupId>
+        <artifactId>java-telegram-bot-api</artifactId>
+        <version>6.2.0</version>
       </dependency>
 
     </dependencies>

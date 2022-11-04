@@ -31,6 +31,7 @@ import com.abavilla.fpi.meta.ext.dto.msgr.QuickReplyDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.ReferralDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtAttchmtDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
+import com.pengrad.telegrambot.model.Update;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
@@ -51,6 +52,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
   ReferralDto.class,
   MetaHookEvtDto.class,
   ProfileReqReply.class,
-})
+  Update.class
+}, ignoreNested = false)
 public class ReflectionConfig extends BaseReflectionConfig {
 }
