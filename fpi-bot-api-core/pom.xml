@@ -64,6 +64,11 @@
 
     <dependency>
       <groupId>com.abavilla</groupId>
+      <artifactId>fpi-bot-api-lib</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.abavilla</groupId>
       <artifactId>fpi-meta-plugin-lib</artifactId>
     </dependency>
 
@@ -85,6 +90,11 @@
     <dependency>
       <groupId>com.abavilla</groupId>
       <artifactId>fpi-msgr-api-lib</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.pengrad</groupId>
+      <artifactId>java-telegram-bot-api</artifactId>
     </dependency>
 
   </dependencies>

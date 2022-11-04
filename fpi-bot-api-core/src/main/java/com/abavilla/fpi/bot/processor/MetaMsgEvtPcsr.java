@@ -22,6 +22,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
+import com.abavilla.fpi.bot.ext.entity.enums.BotSource;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
@@ -29,7 +30,6 @@ import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
 import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
 import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
-import com.abavilla.fpi.login.ext.dto.LoginDto;
 import com.abavilla.fpi.login.ext.dto.SessionDto;
 import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
@@ -44,14 +44,10 @@ import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @ApplicationScoped
 public class MetaMsgEvtPcsr {
-
-  @ConfigProperty(name = "fpi.app-to-app.auth.username")
-  String fpiSystemId;
 
   @RestClient
   TrustedLoginApi loginApi;
@@ -70,7 +66,7 @@ public class MetaMsgEvtPcsr {
 
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
-    Log.info("Received event: " + evt);
+    Log.info("Received meta msgr event: " + evt);
     if (StringUtils.isNotBlank(evt.getContent())) {
       return msgrApi.toggleTyping(evt.getSender(), true).chain(() -> {
         Log.info("Processing event: " + evt.getMetaMsgId());
@@ -80,14 +76,17 @@ public class MetaMsgEvtPcsr {
         return metaMsgEvtRepo.persist(metaMsgEvt).chain(() -> {
           Log.info("Logged to db: " + metaMsgEvt.getMetaMsgId());
           // verify if person is registered
-          var metaId = evt.getSender();
-          WebhookLoginDto login = new WebhookLoginDto();
-          login.setUsername(metaId);
-          Log.info("Authenticating user: " + login.getUsername());
+          var login = new WebhookLoginDto();
+          login.setUsername(evt.getSender());
+          login.setBotSource(BotSource.FB_MSGR.getValue());
+          Log.info("Authenticating user: " + login);
           return loginApi.webhookAuthenticate(login)
             // process load
-            .chain(session -> processLoadQuery(login, session, evt))
-            // login failures/query exceptions
+            .chain(session -> processLoadQuery(login, session, evt)
+              //load query exceptions
+              .onFailure(ApiSvcEx.class).recoverWithUni(ex ->
+                handleApiEx(evt, session.getResp().getUsername(), ex)))
+            // login failures
             .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
         })
         .onFailure(ex -> ex instanceof MongoWriteException wEx &&
@@ -103,18 +102,20 @@ public class MetaMsgEvtPcsr {
     return Uni.createFrom().voidItem();
   }
 
-  private Uni<Void> processLoadQuery(LoginDto login, RespDto<SessionDto> session, MetaMsgEvtDto evt) {
+  private Uni<Void> processLoadQuery(WebhookLoginDto login, RespDto<SessionDto> session, MetaMsgEvtDto evt) {
     Log.info("Authenticated: " + login.getUsername());
     if (StringUtils.equals(session.getStatus(),
       SessionDto.SessionStatus.ESTABLISHED.toString())) {
       var query = new QueryDto();
       query.setQuery(evt.getContent());
+      query.setBotSource(login.getBotSource());
       return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
         Log.info("Query received, response is " + resp);
-        return sendMsgrMsg(evt, "Working on your request, status is '%s'".formatted(resp.getStatus()));
+        return sendMsgrMsg(evt, session.getResp().getUsername(),
+          "Working on your request, status is '%s'".formatted(resp.getStatus()));
       });
     }
-    return sendMsgrMsg(evt, session.getStatus());
+    return sendMsgrMsg(evt, session.getResp().getUsername(), session.getStatus());
   }
 
   private void handleMsgEx(Throwable sendMsgEx) {
@@ -122,6 +123,10 @@ public class MetaMsgEvtPcsr {
   }
 
   private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
+    return handleApiEx(evt, null, ex);
+  }
+
+  private Uni<Void> handleApiEx(MetaMsgEvtDto evt, String fpiUser, Throwable ex) {
     Log.error("Error while processing evt: " + evt.getMetaMsgId(), ex);
     var apiSvcEx = (ApiSvcEx) ex;
     Uni<Void> handleAction;
@@ -129,24 +134,27 @@ public class MetaMsgEvtPcsr {
     if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
       var jsonResponse = apiSvcEx.getJsonResponse(RespDto.class);
       if (jsonResponse != null && StringUtils.isNotBlank(jsonResponse.getError())) {
-        handleAction = sendMsgrMsg(evt, jsonResponse.getError());
+        handleAction = sendMsgrMsg(evt, fpiUser, jsonResponse.getError());
       } else {
-        handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
+        handleAction = sendMsgrMsg(evt, fpiUser, "Error occurred, please try again");
       }
     } else {
-      handleAction = sendMsgrMsg(evt, "Error occurred, please try again");
+      handleAction = sendMsgrMsg(evt, fpiUser, "Error occurred, please try again");
     }
 
     return handleAction.chain(() -> msgrApi.toggleTyping(
       evt.getSender(), false).replaceWithVoid());
   }
 
-  private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String msg) {
+  private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String fpiUser, String msg) {
     Log.info("Sending msgr msg: " + msg + " event: " + evt.getMetaMsgId());
     var msgReq = new MsgrMsgReqDto();
     msgReq.setRecipient(evt.getSender());
     msgReq.setContent(msg);
-    return msgrApi.sendMsg(msgReq, fpiSystemId).replaceWithVoid();
+    msgReq.setReplyTo(evt.getMetaMsgId());
+    return msgrApi.toggleTyping(msgReq.getRecipient(), true)
+      .chain(() -> msgrApi.sendMsg(msgReq, fpiUser))
+      .replaceWithVoid();
   }
 
 }

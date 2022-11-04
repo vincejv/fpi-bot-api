@@ -16,8 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-package com.abavilla.fpi.bot.config.codec;
+package com.abavilla.fpi.bot.codec;
 
+import com.abavilla.fpi.bot.ext.codec.BotSourceCodec;
+import com.abavilla.fpi.bot.ext.entity.enums.BotSource;
 import com.abavilla.fpi.fw.config.codec.IEnumCodecProvider;
 import org.bson.codecs.Codec;
 
@@ -31,6 +33,9 @@ public class EnumCodecProvider implements IEnumCodecProvider {
 
   @Override
   public <T> Codec<T> getCodecProvider(Class<T> tClass) {
+    if (tClass == BotSource.class) {
+      return (Codec<T>) new BotSourceCodec();
+    }
     return null;
   }
 }
