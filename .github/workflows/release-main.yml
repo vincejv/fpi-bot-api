@@ -207,6 +207,8 @@ jobs:
             USER_BASE_URI=${{ secrets.USER_BASE_URI }}
             LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
             MSGR_API_BASE_URI=${{ secrets.MSGR_API_BASE_URI }}
+            TG_API_BASE_URI=${{ secrets.TG_API_BASE_URI }}
+            TELEGRAM_SECRET_VERIFY_TOKEN=${{ secrets.TELEGRAM_SECRET_VERIFY_TOKEN }}
           secrets: |
             MONGO_CONN_STRING=vbl_mongo_connection_string:latest
             OIDC_SECRET=oidc_secret_keycloak:latest

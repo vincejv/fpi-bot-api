@@ -21,4 +21,15 @@
 
   </changeSet>
 
+  <changeSet id="2" author="vincejv" labels="telegram_api" context="main">
+    <comment>added telegram schema</comment>
+    <ext:createCollection collectionName="telegram_event"/>
+
+    <ext:createIndex collectionName="telegram_event">
+      <ext:keys>{senderId: 1, messageId: 1}</ext:keys>
+      <ext:options>{ unique: true, name: "senderMessageId", partialFilterExpression: { senderId: { $exists: true }, messageId: { $exists: true } } }</ext:options>
+    </ext:createIndex>
+
+  </changeSet>
+
 </databaseChangeLog>
