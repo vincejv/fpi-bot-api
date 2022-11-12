@@ -18,9 +18,9 @@
 
 package com.abavilla.fpi.bot.codec;
 
-import com.abavilla.fpi.bot.ext.codec.BotSourceCodec;
-import com.abavilla.fpi.bot.ext.entity.enums.BotSource;
 import com.abavilla.fpi.fw.config.codec.IEnumCodecProvider;
+import com.abavilla.fpi.telco.ext.codec.BotSourceCodec;
+import com.abavilla.fpi.telco.ext.enums.BotSource;
 import org.bson.codecs.Codec;
 
 /**
