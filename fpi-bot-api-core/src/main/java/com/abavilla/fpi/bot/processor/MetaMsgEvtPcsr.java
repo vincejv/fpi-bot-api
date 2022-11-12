@@ -98,6 +98,8 @@ public class MetaMsgEvtPcsr {
       })
       .chain(() -> msgrApi.toggleTyping(evt.getSender(), false)).replaceWithVoid()
       .onFailure().invoke(this::handleMsgEx);
+    } else {
+      Log.warn("Skipping unsupported event");
     }
     return Uni.createFrom().voidItem();
   }
