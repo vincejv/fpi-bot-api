@@ -35,6 +35,8 @@ import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
 import com.abavilla.fpi.msgr.ext.rest.TelegramReqApi;
 import com.abavilla.fpi.telco.ext.enums.BotSource;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoWriteException;
 import com.pengrad.telegrambot.model.Update;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
@@ -62,22 +64,35 @@ public class TgMsgEvtPcsr {
   public Uni<Void> process(Update evt) {
     Log.info("Received telegram update event: " + evt);
     var log = mapToEntity(evt);
-    return repo.persist(log).chain(savedLog -> {
-      Log.info("Logged to db: " + savedLog);
-      return telegramApi.toggleTyping(String.valueOf(savedLog.getSenderId())).chain(() -> {
-        var login = new WebhookLoginDto();
-        login.setUsername(String.valueOf(savedLog.getSenderId()));
-        login.setBotSource(BotSource.TELEGRAM.getValue());
-        Log.info("Authenticating user: " + login);
-        return loginApi.webhookAuthenticate(login)
-          // process load
-          .chain(session -> processLoadQuery(login, session, evt)
-            .onFailure().recoverWithUni(ex -> handleApiEx(evt, session.getResp().getUsername(), ex)))
-          // login failures/query exceptions
-          .onFailure().recoverWithUni(ex -> handleApiEx(evt, ex));
-        });
-      }
-    );
+    if (StringUtils.isNotBlank(log.getContent())) {
+      return repo.persist(log).chain(savedLog -> {
+          Log.info("Logged to db: " + savedLog);
+          return telegramApi.toggleTyping(String.valueOf(savedLog.getSenderId())).chain(() -> {
+            var login = new WebhookLoginDto();
+            login.setUsername(String.valueOf(savedLog.getSenderId()));
+            login.setBotSource(BotSource.TELEGRAM.getValue());
+            Log.info("Authenticating user: " + login);
+            return loginApi.webhookAuthenticate(login)
+              // process load
+              .chain(session -> processLoadQuery(login, session, evt)
+                .onFailure().recoverWithUni(ex -> handleApiEx(evt, session.getResp().getUsername(), ex)))
+              // login failures/query exceptions
+              .onFailure().recoverWithUni(ex -> handleApiEx(evt, ex));
+          });
+        }
+      )
+      .onFailure(ex -> ex instanceof MongoWriteException wEx &&
+        wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
+      .recoverWithItem(() -> {
+        Log.warn("Received duplicate updateId: %d, senderId: %d, messageId: %d"
+          .formatted(log.getUpdateId(), log.getSenderId(), log.getMessageId()));
+        return null;
+      })
+      .onFailure().invoke(this::handleTgMsgFailed);
+    } else {
+      Log.warn("Skipping unsupported event");
+    }
+    return Uni.createFrom().voidItem();
   }
 
   private Uni<Void> processLoadQuery(WebhookLoginDto login, RespDto<SessionDto> session, Update evt) {
@@ -94,6 +109,10 @@ public class TgMsgEvtPcsr {
       });
     }
     return sendMsgrMsg(evt, session.getResp().getUsername(), session.getStatus());
+  }
+
+  private void handleTgMsgFailed(Throwable sendMsgEx) {
+    Log.error("Telegram message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
   }
 
   private Uni<Void> handleApiEx(Update evt, Throwable ex) {
