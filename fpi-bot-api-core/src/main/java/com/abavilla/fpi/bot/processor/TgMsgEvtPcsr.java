@@ -23,7 +23,6 @@ import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.codec.TGUpdateEvtCodec;
 import com.abavilla.fpi.bot.entity.telegram.TelegramEvt;
-import com.abavilla.fpi.bot.ext.entity.enums.BotSource;
 import com.abavilla.fpi.bot.repo.TgEvtRepo;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
@@ -35,6 +34,7 @@ import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
 import com.abavilla.fpi.msgr.ext.rest.TelegramReqApi;
+import com.abavilla.fpi.telco.ext.enums.BotSource;
 import com.pengrad.telegrambot.model.Update;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;

@@ -22,7 +22,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
-import com.abavilla.fpi.bot.ext.entity.enums.BotSource;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
@@ -37,6 +36,7 @@ import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
 import com.abavilla.fpi.msgr.ext.rest.MsgrReqApi;
+import com.abavilla.fpi.telco.ext.enums.BotSource;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
 import io.netty.handler.codec.http.HttpResponseStatus;

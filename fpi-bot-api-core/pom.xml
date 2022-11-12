@@ -93,6 +93,11 @@
     </dependency>
 
     <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-telco-plugin-lib</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.pengrad</groupId>
       <artifactId>java-telegram-bot-api</artifactId>
     </dependency>

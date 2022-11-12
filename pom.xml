@@ -96,7 +96,11 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-msgr-api-lib</artifactId>
-        <version>1.1.2-8bb7ba0-SNAPSHOT</version>
+
+      <dependency>
+        <groupId>com.abavilla</groupId>
+        <artifactId>fpi-telco-plugin-lib</artifactId>
+        <version>1.2.0</version>
       </dependency>
 
       <dependency>
