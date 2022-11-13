@@ -24,139 +24,81 @@ import javax.inject.Inject;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
-import com.abavilla.fpi.fw.dto.impl.RespDto;
-import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
 import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
-import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
-import com.abavilla.fpi.login.ext.dto.SessionDto;
-import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
-import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
 import com.abavilla.fpi.msgr.ext.rest.MsgrReqApi;
 import com.abavilla.fpi.telco.ext.enums.BotSource;
-import com.mongodb.ErrorCategory;
-import com.mongodb.MongoWriteException;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 @ApplicationScoped
-public class MetaMsgEvtPcsr {
-
-  @RestClient
-  TrustedLoginApi loginApi;
-
-  @RestClient
-  LoadQueryApi loadApi;
-
-  @RestClient
-  MsgrReqApi msgrApi;
+public class MetaMsgEvtPcsr extends EvtPcsr<MetaMsgEvtDto, MsgrReqApi, MetaMsgEvtRepo, MetaMsgEvt> {
 
   @Inject
   MetaMsgEvtMapper metaMsgEvtMapper;
 
-  @Inject
-  MetaMsgEvtRepo metaMsgEvtRepo;
-
   @ConsumeEvent(value = "meta-msg-evt", codec = MetaMsgEvtCodec.class)
   public Uni<Void> process(MetaMsgEvtDto evt) {
     Log.info("Received meta msgr event: " + evt);
-    if (StringUtils.isNotBlank(evt.getContent())) {
-      return msgrApi.toggleTyping(evt.getSender(), true).chain(() -> {
-        Log.info("Processing event: " + evt.getMetaMsgId());
-        MetaMsgEvt metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
-        metaMsgEvt.setDateCreated(DateUtil.now());
-        metaMsgEvt.setDateUpdated(DateUtil.now());
-        return metaMsgEvtRepo.persist(metaMsgEvt).chain(() -> {
-          Log.info("Logged to db: " + metaMsgEvt.getMetaMsgId());
-          // verify if person is registered
-          var login = new WebhookLoginDto();
-          login.setUsername(evt.getSender());
-          login.setBotSource(BotSource.FB_MSGR.getValue());
-          Log.info("Authenticating user: " + login);
-          return loginApi.webhookAuthenticate(login)
-            // process load
-            .chain(session -> processLoadQuery(login, session, evt)
-              //load query exceptions
-              .onFailure(ApiSvcEx.class).recoverWithUni(ex ->
-                handleApiEx(evt, session.getResp().getUsername(), ex)))
-            // login failures
-            .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
-        })
-        .onFailure(ex -> ex instanceof MongoWriteException wEx &&
-          wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
-        .recoverWithItem(() -> {
-          Log.warn("Received duplicate mid: " + evt.getMetaMsgId());
-          return null;
-        });
-      })
-      .chain(() -> msgrApi.toggleTyping(evt.getSender(), false)).replaceWithVoid()
-      .onFailure().invoke(this::handleMsgEx);
-    } else {
-      Log.warn("Skipping unsupported event");
-    }
-    return Uni.createFrom().voidItem();
+    return processEvent(evt);
   }
 
-  private Uni<Void> processLoadQuery(WebhookLoginDto login, RespDto<SessionDto> session, MetaMsgEvtDto evt) {
-    Log.info("Authenticated: " + login.getUsername());
-    if (StringUtils.equals(session.getStatus(),
-      SessionDto.SessionStatus.ESTABLISHED.toString())) {
-      var query = new QueryDto();
-      query.setQuery(evt.getContent());
-      query.setBotSource(login.getBotSource());
-      return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
-        Log.info("Query received, response is " + resp);
-        return sendMsgrMsg(evt, session.getResp().getUsername(),
-          "Working on your request, status is '%s'".formatted(resp.getStatus()));
-      });
-    }
-    return sendMsgrMsg(evt, session.getResp().getUsername(), session.getStatus());
+  @Override
+  protected MetaMsgEvt mapToEntity(MetaMsgEvtDto evt) {
+    var metaMsgEvt = metaMsgEvtMapper.mapToEntity(evt);
+    metaMsgEvt.setDateCreated(DateUtil.now());
+    metaMsgEvt.setDateUpdated(DateUtil.now());
+    return metaMsgEvt;
   }
 
-  private void handleMsgEx(Throwable sendMsgEx) {
-    Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
+  @Override
+  protected String getContentFromEvt(MetaMsgEvtDto evt) {
+    return evt.getContent();
   }
 
-  private Uni<Void> handleApiEx(MetaMsgEvtDto evt, Throwable ex) {
-    return handleApiEx(evt, null, ex);
+  @Override
+  protected String getEventIdForLogging(MetaMsgEvtDto evt) {
+    return evt.getMetaMsgId();
   }
 
-  private Uni<Void> handleApiEx(MetaMsgEvtDto evt, String fpiUser, Throwable ex) {
-    Log.error("Error while processing evt: " + evt.getMetaMsgId(), ex);
-    var apiSvcEx = (ApiSvcEx) ex;
-    Uni<Void> handleAction;
-
-    if (!HttpResponseStatus.INTERNAL_SERVER_ERROR.equals(apiSvcEx.getHttpResponseStatus())) {
-      var jsonResponse = apiSvcEx.getJsonResponse(RespDto.class);
-      if (jsonResponse != null && StringUtils.isNotBlank(jsonResponse.getError())) {
-        handleAction = sendMsgrMsg(evt, fpiUser, jsonResponse.getError());
-      } else {
-        handleAction = sendMsgrMsg(evt, fpiUser, "Error occurred, please try again");
-      }
-    } else {
-      handleAction = sendMsgrMsg(evt, fpiUser, "Error occurred, please try again");
-    }
-
-    return handleAction.chain(() -> msgrApi.toggleTyping(
-      evt.getSender(), false).replaceWithVoid());
+  @Override
+  public BotSource getBotSource() {
+    return BotSource.FB_MSGR;
   }
 
-  private Uni<Void> sendMsgrMsg(MetaMsgEvtDto evt, String fpiUser, String msg) {
-    Log.info("Sending msgr msg: " + msg + " event: " + evt.getMetaMsgId());
+  @Override
+  public Uni<Void> toggleTyping(String recipient, boolean isTyping) {
+    return msgrApi.toggleTyping(recipient, isTyping).replaceWithVoid();
+  }
+
+  @Override
+  public QueryDto createLoadQueryFromEvt(MetaMsgEvtDto evt) {
+    var query = new QueryDto();
+    query.setQuery(evt.getContent());
+    query.setBotSource(getBotSource().toString());
+    return query;
+  }
+
+  @Override
+  public MsgrMsgReqDto createMsgReqFromEvt(MetaMsgEvtDto evt) {
     var msgReq = new MsgrMsgReqDto();
-    msgReq.setRecipient(evt.getSender());
-    msgReq.setContent(msg);
+    msgReq.setRecipient(getSenderFromEvt(evt));
     msgReq.setReplyTo(evt.getMetaMsgId());
-    return msgrApi.toggleTyping(msgReq.getRecipient(), true)
-      .chain(() -> msgrApi.sendMsg(msgReq, fpiUser))
-      .replaceWithVoid();
+    return msgReq;
+  }
+
+  @Override
+  public String getSenderFromEvt(MetaMsgEvtDto evt) {
+    return evt.getSender();
+  }
+
+  @Override
+  protected Uni<Void> sendMsgrMsg(MsgrMsgReqDto msgReq, String fpiUser) {
+    return msgrApi.sendMsg(msgReq, fpiUser).replaceWithVoid();
   }
 
 }
