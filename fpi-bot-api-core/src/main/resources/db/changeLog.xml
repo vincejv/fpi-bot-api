@@ -32,4 +32,15 @@
 
   </changeSet>
 
+  <changeSet id="3" author="vincejv" labels="viber_api" context="main">
+    <comment>added viber schema</comment>
+    <ext:createCollection collectionName="viber_event"/>
+
+    <ext:createIndex collectionName="viber_event">
+      <ext:keys>{messageToken: 1, event: 1, timestamp: -1}</ext:keys>
+      <ext:options>{ unique: true, name: "messageTokenEventTimestamp", partialFilterExpression: { messageToken: { $exists: true }, event: { $exists: true }, timestamp: { $exists: true } } }</ext:options>
+    </ext:createIndex>
+
+  </changeSet>
+
 </databaseChangeLog>

@@ -21,6 +21,8 @@ package com.abavilla.fpi.bot.codec;
 import com.abavilla.fpi.fw.config.codec.IEnumCodecProvider;
 import com.abavilla.fpi.telco.ext.codec.BotSourceCodec;
 import com.abavilla.fpi.telco.ext.enums.BotSource;
+import com.abavilla.fpi.viber.ext.codec.MessageTypeCodec;
+import com.abavilla.fpi.viber.ext.dto.Message;
 import org.bson.codecs.Codec;
 
 /**
@@ -31,10 +33,13 @@ import org.bson.codecs.Codec;
  */
 public class EnumCodecProvider implements IEnumCodecProvider {
 
+  @SuppressWarnings("unchecked")
   @Override
   public <T> Codec<T> getCodecProvider(Class<T> tClass) {
     if (tClass == BotSource.class) {
       return (Codec<T>) new BotSourceCodec();
+    } else if (tClass == Message.Type.class) {
+      return (Codec<T>) new MessageTypeCodec();
     }
     return null;
   }
