@@ -37,7 +37,7 @@ public interface ViberEvtMapper extends IDtoToEntityMapper<ViberUpdate, ViberEvt
 
   @Mapping(target = "content", source = "message.text")
   @Mapping(target = "recipient", source = "sender.id")
-  @Mapping(target = "replyTo", source = "message.trackingData")
+  @Mapping(target = "replyTo", source = "messageToken")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "dateCreated", ignore = true)
   @Mapping(target = "dateUpdated", ignore = true)
