@@ -49,18 +49,13 @@
   <parent>
     <groupId>com.abavilla</groupId>
     <artifactId>fpi-framework-pom</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.4</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>fpi-bot-api</artifactId>
+  <artifactId>fpi-bot-api-parent</artifactId>
   <packaging>pom</packaging>
   <version>0</version>
-
-  <modules>
-    <module>fpi-bot-api-lib</module>
-    <module>fpi-bot-api-core</module>
-  </modules>
 
   <properties>
 
@@ -71,38 +66,38 @@
 
       <dependency>
         <groupId>com.abavilla</groupId>
-        <artifactId>fpi-bot-api-lib</artifactId>
+        <artifactId>fpi-bot-api</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
-        <artifactId>fpi-meta-plugin-lib</artifactId>
-        <version>1.0.16</version>
+        <artifactId>fpi-meta-plugin</artifactId>
+        <version>1.0.19</version>
       </dependency>
 
       <dependency>
         <groupId>com.abavilla</groupId>
-        <artifactId>fpi-login-api-lib</artifactId>
+        <artifactId>fpi-login-api</artifactId>
+        <version>1.3.4</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.abavilla</groupId>
+        <artifactId>fpi-load-api</artifactId>
+        <version>1.3.2</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.abavilla</groupId>
+        <artifactId>fpi-msgr-api</artifactId>
+        <version>1.3.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.abavilla</groupId>
+        <artifactId>fpi-telco-plugin</artifactId>
         <version>1.2.3</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-load-api-lib</artifactId>
-        <version>1.2.3</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-msgr-api-lib</artifactId>
-        <version>1.3.0</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.abavilla</groupId>
-        <artifactId>fpi-telco-plugin-lib</artifactId>
-        <version>1.2.0</version>
       </dependency>
 
       <dependency>
@@ -113,11 +108,40 @@
 
       <dependency>
         <groupId>com.abavilla</groupId>
-        <artifactId>fpi-viber-plugin-lib</artifactId>
-        <version>1.1.4</version>
+        <artifactId>fpi-viber-plugin</artifactId>
+        <version>1.1.6</version>
       </dependency>
 
     </dependencies>
   </dependencyManagement>
+
+  <profiles>
+
+    <profile>
+      <id>lib-only</id>
+      <activation>
+        <property>
+          <name>lib-only</name>
+        </property>
+      </activation>
+      <modules>
+        <module>lib</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>all-modules</id>
+      <activation>
+        <property>
+          <name>!lib-only</name>
+        </property>
+      </activation>
+      <modules>
+        <module>lib</module>
+        <module>core</module>
+      </modules>
+    </profile>
+
+  </profiles>
 
 </project>
