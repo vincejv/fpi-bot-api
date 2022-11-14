@@ -32,9 +32,11 @@ import com.abavilla.fpi.fw.controller.AbsBaseResource;
 import com.abavilla.fpi.fw.dto.IDto;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
+import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.fw.util.MapperUtil;
 import com.abavilla.fpi.fw.util.SigUtil;
 import com.abavilla.fpi.meta.ext.dto.MetaHookEvtDto;
+import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
 import com.pengrad.telegrambot.BotUtils;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
@@ -51,7 +53,10 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
    * Facebook app secret, used in HMAC signature checking
    */
   @ConfigProperty(name = "com.meta.facebook.app-secret")
-  String webhookSecret;
+  String metaAppSecret;
+
+  @ConfigProperty(name = "com.viber.auth-token")
+  String viberAuthToken;
 
   @Path("msgr")
   @POST
@@ -59,7 +64,7 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
       @RestHeader("X-Hub-Signature-256") String signatureHdr,
       String body) {
     var signature = StringUtils.removeStart(signatureHdr, BotConst.HTTP_HDR_SHA256);
-    if (StringUtils.isNotBlank(signatureHdr) && SigUtil.validateSignature(body, webhookSecret, signature)) {
+    if (StringUtils.isNotBlank(signatureHdr) && SigUtil.validateSignature(body, metaAppSecret, signature)) {
       return service.processWebhook(MapperUtil.readJson(body, MetaHookEvtDto.class));
     } else {
       Log.warn("Signature check failed: payload: " + body + " signature: " + signatureHdr);
@@ -86,6 +91,24 @@ public class WebhookResource extends AbsBaseResource<MetaHookEvtDto, MetaMsgEvt,
       return service.processWebhook(evt);
     }
     throw new FPISvcEx("Unauthorized secret token", RestResponse.StatusCode.FORBIDDEN);
+  }
+
+  @Path("viber")
+  @POST
+  public Uni<RespDto<IDto>> receiveEventFromViber(
+    @RestHeader("X-Viber-Content-Signature") String signature,
+    String body) {
+    if (StringUtils.isNotBlank(signature) && SigUtil.validateSignature(body, viberAuthToken, signature)) {
+      return service.processWebhook(MapperUtil.readJson(body, ViberUpdate.class))
+        .replaceWith(() -> {
+          var resp = new RespDto<>();
+          resp.setTimestamp(DateUtil.nowAsStr());
+          resp.setStatus("received");
+          return resp;
+        });
+    }
+    Log.warn("Signature check failed: payload: " + body + " signature: " + signature);
+    throw new FPISvcEx(StringUtils.EMPTY, Response.Status.FORBIDDEN.getStatusCode());
   }
 
   /**

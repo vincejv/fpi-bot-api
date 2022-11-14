@@ -28,6 +28,9 @@ quarkus:
     telegram-api:
       url: ${TG_API_BASE_URI}
       scope: javax.inject.Singleton
+    viber-api:
+      url: ${VIBER_API_BASE_URI}
+      scope: javax.inject.Singleton
   oidc:
     auth-server-url: ${OIDC_AUTH_URL:https://localhost:8543/realms/quarkus}
     client-id: ${OIDC_CLIENT_ID:backend-api}
@@ -48,6 +51,8 @@ com:
     facebook:
       verify-token: ${META_FB_VRFY_TOKEN:FPIMETAVRFYQsARvSdfggYQS}
       app-secret: ${META_FB_APP_SECRET:ABCJSOWE1234}
+  viber:
+    auth-token: ${VIBER_AUTH_TOKEN:AAA-BBB-CCCDD-1223}
 
 org:
   telegram:
