@@ -51,9 +51,10 @@
   <version>0</version>
   
   <parent>
-    <artifactId>fpi-bot-api</artifactId>
+    <artifactId>fpi-bot-api-parent</artifactId>
     <groupId>com.abavilla</groupId>
     <version>0</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <properties>
@@ -64,12 +65,12 @@
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-bot-api-lib</artifactId>
+      <artifactId>fpi-bot-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-meta-plugin-lib</artifactId>
+      <artifactId>fpi-meta-plugin</artifactId>
     </dependency>
 
     <dependency>
@@ -79,22 +80,22 @@
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-login-api-lib</artifactId>
+      <artifactId>fpi-login-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-load-api-lib</artifactId>
+      <artifactId>fpi-load-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-msgr-api-lib</artifactId>
+      <artifactId>fpi-msgr-api</artifactId>
     </dependency>
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-telco-plugin-lib</artifactId>
+      <artifactId>fpi-telco-plugin</artifactId>
     </dependency>
 
     <dependency>
@@ -104,7 +105,7 @@
 
     <dependency>
       <groupId>com.abavilla</groupId>
-      <artifactId>fpi-viber-plugin-lib</artifactId>
+      <artifactId>fpi-viber-plugin</artifactId>
     </dependency>
 
   </dependencies>
@@ -118,6 +119,7 @@
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
 
@@ -127,10 +129,12 @@
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
 
