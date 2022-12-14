@@ -108,6 +108,11 @@
       <artifactId>fpi-viber-plugin</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.abavilla</groupId>
+      <artifactId>fpi-sms-api</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>

@@ -24,9 +24,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import com.abavilla.fpi.bot.codec.MoEvtDtoCodec;
 import com.abavilla.fpi.bot.codec.TGUpdateEvtCodec;
 import com.abavilla.fpi.bot.codec.ViberUpdateEvtCodec;
 import com.abavilla.fpi.bot.config.MetaApiKeyConfig;
+import com.abavilla.fpi.bot.dto.MOEvtDto;
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.exceptions.FPISvcEx;
@@ -35,6 +37,7 @@ import com.abavilla.fpi.meta.ext.codec.MetaMsgEvtCodec;
 import com.abavilla.fpi.meta.ext.dto.MetaHookEvtDto;
 import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
 import com.abavilla.fpi.meta.ext.mapper.MetaHookEvtMapper;
+import com.abavilla.fpi.telco.ext.enums.Telco;
 import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
 import com.pengrad.telegrambot.model.Update;
 import io.quarkus.logging.Log;
@@ -55,28 +58,41 @@ public class WebhookMsgEvtSvc extends AbsSvc<MetaHookEvtDto, MetaMsgEvt> {
   @Inject
   MetaHookEvtMapper metaHookEvtMapper;
 
-  public Uni<Void> processWebhook(MetaHookEvtDto event) {
+  public void processWebhook(MetaHookEvtDto event) {
     List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
     for (MetaMsgEvtDto dto : metaMsgEvtDtos) {
       bus.send("meta-msg-evt", dto,
         new DeliveryOptions().setCodecName(MetaMsgEvtCodec.class.getName()));
       Log.info("Sent to meta event bus for processing: " + dto.getMetaMsgId());
     }
-    return Uni.createFrom().voidItem();
   }
 
-  public Uni<Void> processWebhook(Update event) {
+  public void processWebhook(Update event) {
     bus.send("telegram-msg-evt", event,
       new DeliveryOptions().setCodecName(TGUpdateEvtCodec.class.getName()));
     Log.info("Sent to telegram event bus for processing: " + event.updateId());
-    return Uni.createFrom().voidItem();
   }
 
-  public Uni<Void> processWebhook(ViberUpdate event) {
+  public void processWebhook(ViberUpdate event) {
     bus.send("viber-msg-evt", event,
       new DeliveryOptions().setCodecName(ViberUpdateEvtCodec.class.getName()));
     Log.info("Sent to viber event bus for processing: " + event.getMessageToken());
-    return Uni.createFrom().voidItem();
+  }
+
+  public void processWebhook(String transactionId, String mobileNo, String message,
+    String timestamp, String acSource, Integer msgSegment, Integer telco
+  ) {
+    var moEvt = new MOEvtDto();
+    moEvt.setTransactionId(transactionId);
+    moEvt.setMobileNo(mobileNo);
+    moEvt.setMessage(message);
+    moEvt.setAcSource(acSource);
+    moEvt.setMsgSegment(msgSegment);
+    moEvt.setTimestamp(timestamp);
+    moEvt.setTelco(Telco.fromId(telco));
+    bus.send("mo-msg-evt", moEvt,
+      new DeliveryOptions().setCodecName(MoEvtDtoCodec.class.getName()));
+    Log.info("Sent to MO event bus for processing: " + moEvt.getTransactionId());
   }
 
 
