@@ -43,4 +43,15 @@
 
   </changeSet>
 
+  <changeSet id="4" author="vincejv" labels="mo_sms_api" context="main">
+    <comment>added mo sms api schema</comment>
+    <ext:createCollection collectionName="mo_event"/>
+
+    <ext:createIndex collectionName="mo_event">
+      <ext:keys>{transactionId: 1}</ext:keys>
+      <ext:options>{unique: true, name: "transactionId"}</ext:options>
+    </ext:createIndex>
+
+  </changeSet>
+
 </databaseChangeLog>
