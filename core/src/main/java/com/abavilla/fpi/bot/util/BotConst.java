@@ -27,5 +27,7 @@ public final class BotConst {
    */
   public static final String HTTP_HDR_SHA256 = "sha256=";
 
+  public static final String M360_TIMESTAMP_FORMAT = "yyyyMMddHHmmss";
+
   private BotConst() {}
 }

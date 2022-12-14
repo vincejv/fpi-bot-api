@@ -216,6 +216,7 @@ jobs:
             OIDC_SECRET=oidc_secret_keycloak:latest
             META_FB_APP_SECRET=meta_fb_app_secret:latest
             FPI_APP_TO_APP_PASSW=fpi_bot_api_creds_secret_key:latest
+            FPI_MO_WEBHOOK_KEY=fpi_mo_incoming_webook_key:latest
           labels: |
             env=${{ env.SERVICE_ENV }}
 

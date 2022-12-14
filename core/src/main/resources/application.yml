@@ -63,3 +63,6 @@ fpi:
     auth:
       username: ${FPI_APP_TO_APP_USERN:username}
       password: ${FPI_APP_TO_APP_PASSW:password}
+  webhook:
+    mo:
+      api-key: ${FPI_MO_WEBHOOK_KEY:FPIDLRAABBBDDCCCQQQ}
