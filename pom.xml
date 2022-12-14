@@ -85,7 +85,7 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-load-api</artifactId>
-        <version>1.3.2</version>
+        <version>1.3.4</version>
       </dependency>
 
       <dependency>
