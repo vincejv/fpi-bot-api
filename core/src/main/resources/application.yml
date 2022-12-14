@@ -25,6 +25,9 @@ quarkus:
     msgr-api:
       url: ${MSGR_API_BASE_URI}
       scope: javax.inject.Singleton
+    sms-api:
+      url: ${SMS_BASE_URI}
+      scope: javax.inject.Singleton
     telegram-api:
       url: ${TG_API_BASE_URI}
       scope: javax.inject.Singleton
