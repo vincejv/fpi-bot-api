@@ -39,11 +39,13 @@ import com.abavilla.fpi.meta.ext.dto.msgr.ext.MetaMsgEvtDto;
 import com.abavilla.fpi.meta.ext.mapper.MetaHookEvtMapper;
 import com.abavilla.fpi.telco.ext.enums.Telco;
 import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.pengrad.telegrambot.model.Update;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
@@ -57,6 +59,9 @@ public class WebhookMsgEvtSvc extends AbsSvc<MetaHookEvtDto, MetaMsgEvt> {
 
   @Inject
   MetaHookEvtMapper metaHookEvtMapper;
+
+  @Inject
+  PhoneNumberUtil phoneNumberUtil;
 
   public void processWebhook(MetaHookEvtDto event) {
     List<MetaMsgEvtDto> metaMsgEvtDtos = metaHookEvtMapper.hookToDtoList(event);
@@ -84,7 +89,7 @@ public class WebhookMsgEvtSvc extends AbsSvc<MetaHookEvtDto, MetaMsgEvt> {
   ) {
     var moEvt = new MOEvtDto();
     moEvt.setTransactionId(transactionId);
-    moEvt.setMobileNo(mobileNo);
+    moEvt.setMobileNo(convertToEi64(mobileNo));
     moEvt.setMessage(message);
     moEvt.setAcSource(acSource);
     moEvt.setMsgSegment(msgSegment);
@@ -93,6 +98,12 @@ public class WebhookMsgEvtSvc extends AbsSvc<MetaHookEvtDto, MetaMsgEvt> {
     bus.send("mo-msg-evt", moEvt,
       new DeliveryOptions().setCodecName(MoEvtDtoCodec.class.getName()));
     Log.info("Sent to MO event bus for processing: " + moEvt.getTransactionId());
+  }
+
+  @SneakyThrows
+  private String convertToEi64(String mobile) {
+    var number = phoneNumberUtil.parse(mobile, BotConst.PH_REGION_CODE);
+    return phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164);
   }
 
 

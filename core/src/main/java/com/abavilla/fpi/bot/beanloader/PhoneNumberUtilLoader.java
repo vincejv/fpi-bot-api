@@ -16,20 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.     *
  ******************************************************************************/
 
-package com.abavilla.fpi.bot.util;
+package com.abavilla.fpi.bot.beanloader;
 
-public final class BotConst {
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 
-  public static final String META_HUB_MODE_SUBSCRIBE = "subscribe";
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+
+/**
+ * Bean definition for {@link  PhoneNumberUtil}.
+ *
+ * @author <a href="mailto:vincevillamora@gmail.com">Vince Villamora</a>
+ */
+@ApplicationScoped
+public class PhoneNumberUtilLoader {
 
   /**
-   * SHA-256 HMAC algorithm from http header
+   * Creates a {@link PhoneNumberUtil} instance using the default configurations
+   *
+   * @return {@link PhoneNumberUtil} instance
    */
-  public static final String HTTP_HDR_SHA256 = "sha256=";
+  @Produces
+  PhoneNumberUtil phoneNumberUtil() {
+    return PhoneNumberUtil.getInstance();
+  }
 
-  public static final String M360_TIMESTAMP_FORMAT = "yyyyMMddHHmmss";
-
-  public static final String PH_REGION_CODE = "PH";
-
-  private BotConst() {}
 }

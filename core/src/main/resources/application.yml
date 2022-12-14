@@ -45,6 +45,10 @@ quarkus:
         '1':
           path: /fpi/webhook/*
           enforcement-mode: DISABLED
+  native:
+    resources:
+      includes:
+        com/google/i18n/phonenumbers/data/**,com/google/i18n/phonenumbers/carrier/data/**
 
 com:
   meta:
