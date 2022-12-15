@@ -31,5 +31,7 @@ public final class BotConst {
 
   public static final String PH_REGION_CODE = "PH";
 
+  public static final String NULL_STR = "null";
+
   private BotConst() {}
 }
