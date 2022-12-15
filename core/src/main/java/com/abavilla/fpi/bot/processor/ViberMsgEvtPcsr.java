@@ -33,6 +33,7 @@ import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class ViberMsgEvtPcsr extends EvtPcsr<ViberUpdate, ViberReqApi, ViberEvtRepo, ViberEvt> {
@@ -88,6 +89,12 @@ public class ViberMsgEvtPcsr extends EvtPcsr<ViberUpdate, ViberReqApi, ViberEvtR
   @Override
   protected String getSenderFromEvt(ViberUpdate evt) {
     return evt.getSender() == null ? evt.getUserId() : evt.getSender().getId();
+  }
+
+  @Override
+  protected Uni<String> getFriendlyUserName(ViberUpdate evt) {
+    return msgrApi.getUserDtls(getSenderFromEvt(evt), StringUtils.EMPTY)
+      .map(resp -> resp.getResp().getUser().getName());
   }
 
   @Override

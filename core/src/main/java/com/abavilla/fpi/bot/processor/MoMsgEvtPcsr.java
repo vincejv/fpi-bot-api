@@ -102,4 +102,9 @@ public class MoMsgEvtPcsr extends EvtPcsr<MOEvtDto, SmsApi, MOEvtRepo, MOEvt> {
   protected String getSenderFromEvt(MOEvtDto evt) {
     return evt.getMobileNo();
   }
+
+  @Override
+  protected Uni<String> getFriendlyUserName(MOEvtDto evt) {
+    return Uni.createFrom().item(getSenderFromEvt(evt));
+  }
 }

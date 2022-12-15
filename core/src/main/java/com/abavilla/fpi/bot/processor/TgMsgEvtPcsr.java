@@ -23,6 +23,7 @@ import javax.enterprise.context.ApplicationScoped;
 import com.abavilla.fpi.bot.codec.TGUpdateEvtCodec;
 import com.abavilla.fpi.bot.entity.telegram.TelegramEvt;
 import com.abavilla.fpi.bot.repo.TgEvtRepo;
+import com.abavilla.fpi.bot.util.BotConst;
 import com.abavilla.fpi.fw.util.DateUtil;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
@@ -32,6 +33,7 @@ import com.pengrad.telegrambot.model.Update;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class TgMsgEvtPcsr extends EvtPcsr<Update, TelegramReqApi, TgEvtRepo, TelegramEvt> {
@@ -74,6 +76,25 @@ public class TgMsgEvtPcsr extends EvtPcsr<Update, TelegramReqApi, TgEvtRepo, Tel
   @Override
   public String getSenderFromEvt(Update evt) {
     return String.valueOf(evt.message().from().id());
+  }
+
+  @Override
+  protected Uni<String> getFriendlyUserName(Update evt) {
+    return Uni.createFrom().item(() -> {
+      String fname = evt.message().from().firstName();
+      String lname = evt.message().from().lastName();
+      String friendlyName = StringUtils.EMPTY;
+      if (StringUtils.isNotBlank(fname) && !StringUtils.equals(fname, BotConst.NULL_STR)) {
+        friendlyName += fname;
+      }
+      if (StringUtils.isNotBlank(lname) && !StringUtils.equals(lname, BotConst.NULL_STR)) {
+        friendlyName += StringUtils.SPACE + lname;
+      }
+      if (StringUtils.isBlank(friendlyName)) {
+        friendlyName = evt.message().from().username();
+      }
+      return friendlyName;
+    });
   }
 
   @Override

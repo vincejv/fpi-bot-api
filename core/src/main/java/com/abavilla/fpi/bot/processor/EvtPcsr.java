@@ -60,20 +60,28 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
           Log.info("Processing event: " + getEventIdForLogging(evt));
           I evtEntity = mapToEntity(evt);
           return evtLog.persist(evtEntity).chain(() -> {
-              Log.info("Logged to db: " + getEventIdForLogging(evt));
+
               // verify if person is registered
-              var login = new WebhookLoginDto();
-              login.setUsername(getSenderFromEvt(evt));
-              login.setBotSource(getBotSource().toString());
-              Log.info("Authenticating user: " + login);
-              return loginApi.webhookAuthenticate(login)
-                // process load
-                .chain(session -> processLoadQuery(login, session, evt)
-                  //load query exceptions
-                  .onFailure(ApiSvcEx.class).recoverWithUni(ex ->
-                    handleApiEx(evt, session.getResp().getUsername(), ex)))
-                // login failures
-                .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
+              Log.info("Logged to db: " + getEventIdForLogging(evt));
+              Uni<WebhookLoginDto> prepWHLogin = getFriendlyUserName(evt).map(friendlyName -> {
+                var webhookLogin = new WebhookLoginDto();
+                webhookLogin.setUsername(getSenderFromEvt(evt));
+                webhookLogin.setBotSource(getBotSource().toString());
+                webhookLogin.setFriendlyName(friendlyName);
+                return webhookLogin;
+              });
+
+              return prepWHLogin.chain(login -> {
+                Log.info("Authenticating user: " + login);
+                return loginApi.webhookAuthenticate(login)
+                  // process load
+                  .chain(session -> processLoadQuery(login, session, evt)
+                    //load query exceptions
+                    .onFailure(ApiSvcEx.class).recoverWithUni(ex ->
+                      handleApiEx(evt, session.getResp().getUsername(), ex)))
+                  // login failures
+                  .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
+              });
             })
             .onFailure(ex -> ex instanceof MongoWriteException wEx &&
               wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
@@ -156,4 +164,7 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
   protected abstract MsgrMsgReqDto createMsgReqFromEvt(E evt);
 
   protected abstract String getSenderFromEvt(E evt);
+
+  protected abstract Uni<String> getFriendlyUserName(E evt);
+
 }

@@ -34,6 +34,7 @@ import com.abavilla.fpi.telco.ext.enums.BotSource;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class MetaMsgEvtPcsr extends EvtPcsr<MetaMsgEvtDto, MsgrReqApi, MetaMsgEvtRepo, MetaMsgEvt> {
@@ -94,6 +95,12 @@ public class MetaMsgEvtPcsr extends EvtPcsr<MetaMsgEvtDto, MsgrReqApi, MetaMsgEv
   @Override
   public String getSenderFromEvt(MetaMsgEvtDto evt) {
     return evt.getSender();
+  }
+
+  @Override
+  protected Uni<String> getFriendlyUserName(MetaMsgEvtDto evt) {
+    return msgrApi.getUserDtls(getSenderFromEvt(evt), StringUtils.EMPTY)
+      .map(apiResp -> apiResp.getResp().getName());
   }
 
   @Override
