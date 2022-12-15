@@ -92,15 +92,16 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
 
   protected Uni<Void> processLoadQuery(WebhookLoginDto login, RespDto<SessionDto> session, E evt) {
     Log.info("Authenticated: " + login.getUsername());
-    if (StringUtils.equals(session.getStatus(),
-      SessionDto.SessionStatus.ESTABLISHED.toString())) {
+    if (session.getResp().getStatus() == SessionDto.SessionStatus.ESTABLISHED) {
       var query = createLoadQueryFromEvt(evt);
       return loadApi.query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
         Log.info("Query received, response is " + resp);
         return sendResponse(evt, session.getResp().getUsername(),
-          "Processing your request, status is %s".formatted(resp.getStatus()));
+          "We have received your request, current status is %s".formatted(resp.getStatus()));
       });
     }
+
+    // unable to establish session
     return sendResponse(evt, session.getResp().getUsername(), session.getStatus());
   }
 
