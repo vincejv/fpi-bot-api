@@ -4,9 +4,7 @@ updates:
     directory: "/"
     target-branch: "development"
     schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "dependabot"
+      interval: "daily"
     assignees:
       - "vincejv"
     labels:
@@ -18,9 +16,7 @@ updates:
     directory: "/"
     target-branch: "development"
     schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "dependabot"
+      interval: "daily"
     assignees:
       - "vincejv"
     labels:
