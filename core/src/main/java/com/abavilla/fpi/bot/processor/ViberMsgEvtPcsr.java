@@ -18,9 +18,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.abavilla.fpi.bot.codec.ViberUpdateEvtCodec;
 import com.abavilla.fpi.bot.entity.viber.ViberEvt;
 import com.abavilla.fpi.bot.mapper.viber.ViberEvtMapper;
@@ -33,6 +30,8 @@ import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped

@@ -18,10 +18,9 @@
 
 package com.abavilla.fpi.bot.repo;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.fw.repo.AbsMongoRepo;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class MetaMsgEvtRepo extends AbsMongoRepo<MetaMsgEvt> {
