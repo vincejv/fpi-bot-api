@@ -18,9 +18,8 @@
 
 package com.abavilla.fpi.bot;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.abavilla.fpi.fw.FPIApplication;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * Application starting point

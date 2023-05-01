@@ -18,10 +18,9 @@
 
 package com.abavilla.fpi.bot.beanloader;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
 /**
  * Bean definition for {@link  PhoneNumberUtil}.

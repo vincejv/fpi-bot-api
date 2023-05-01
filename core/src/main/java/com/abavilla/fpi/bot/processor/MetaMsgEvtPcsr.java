@@ -18,9 +18,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.mapper.meta.MetaMsgEvtMapper;
 import com.abavilla.fpi.bot.repo.MetaMsgEvtRepo;
@@ -34,6 +31,8 @@ import com.abavilla.fpi.telco.ext.enums.BotSource;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped

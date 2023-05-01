@@ -18,8 +18,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.abavilla.fpi.bot.codec.TGUpdateEvtCodec;
 import com.abavilla.fpi.bot.entity.telegram.TelegramEvt;
 import com.abavilla.fpi.bot.repo.TgEvtRepo;
@@ -33,6 +31,7 @@ import com.pengrad.telegrambot.model.Update;
 import io.quarkus.logging.Log;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped

@@ -18,14 +18,6 @@
 
 package com.abavilla.fpi.bot.controller;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-
 import com.abavilla.fpi.bot.entity.meta.MetaMsgEvt;
 import com.abavilla.fpi.bot.service.WebhookMsgEvtSvc;
 import com.abavilla.fpi.bot.util.BotConst;
@@ -41,6 +33,13 @@ import com.abavilla.fpi.viber.ext.dto.ViberUpdate;
 import com.pengrad.telegrambot.BotUtils;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestHeader;

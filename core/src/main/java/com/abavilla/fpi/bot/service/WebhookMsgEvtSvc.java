@@ -20,10 +20,6 @@ package com.abavilla.fpi.bot.service;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.core.Response;
-
 import com.abavilla.fpi.bot.codec.MoEvtDtoCodec;
 import com.abavilla.fpi.bot.codec.TGUpdateEvtCodec;
 import com.abavilla.fpi.bot.codec.ViberUpdateEvtCodec;
@@ -45,6 +41,9 @@ import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 

@@ -16,9 +16,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.entity.AbsItem;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
@@ -35,6 +32,8 @@ import com.mongodb.MongoWriteException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
