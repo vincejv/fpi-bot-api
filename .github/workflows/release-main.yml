@@ -13,7 +13,7 @@ env:
   SERVICE: fpi-bot-api-v1
   REGION: asia-east1
   SONAR_PROJECT_KEY: vincejv_fpi-bot-api
-  NATIVE_IMAGE_BUILDER: quay.io/quarkus/ubi-quarkus-mandrel:22.3-java17
+  NATIVE_IMAGE_BUILDER: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17
   SERVICE_CPU: 1000m
   SERVICE_MEMORY: 512Mi
   SERVICE_ENV: prod
