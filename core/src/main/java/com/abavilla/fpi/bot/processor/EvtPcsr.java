@@ -117,41 +117,39 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
       sendResponse(evt, session.getResp().getUsername(), session.getStatus());
 
     if (session.getResp().getStatus() == SessionDto.SessionStatus.ESTABLISHED) {
-      // if established/verified session, determine query is originating as sms
-      // if SMS, check query type, otherwise, load query by default
       queryEvt = loadApi
         .query(query, "Bearer " + session.getResp().getAccessToken()).chain(resp -> {
           Log.info("Query received, response is " + resp);
           return sendResponse(evt, session.getResp().getUsername(),
             "We have received your request, current status is %s".formatted(resp.getStatus()));
         });
+    }
 
-      if (StringUtils.equalsIgnoreCase(query.getBotSource(), BotSource.SMS.getValue())) {
-        queryEvt = switch (queryType) {
-          case KEYW_SUBS -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
-            var usrId = usrByMobile.getResp().getId();
-            var usr = new UserDto();
-            usr.setSvcStatus(ServiceStatus.OPT_IN);
-            return userApi.patchById(usrId, usr)
-              .chain(() -> sendResponse(evt, session.getResp().getUsername(),
-                """
-                  Thank you for subscribing to FPI Service, with this subscription you agree to our privacy policy at https://florenz.abavilla.com/privacy-policy.
-                    
-                  To opt out send "STOP" to 225642222"""));
-          });
-          case KEYW_STOP -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
-            var usrId = usrByMobile.getResp().getId();
-            var usr = new UserDto();
-            usr.setSvcStatus(ServiceStatus.OPT_OUT);
-            return userApi.patchById(usrId, usr).chain(() -> sendResponse(evt, session.getResp().getUsername(),
+    if (StringUtils.equalsIgnoreCase(query.getBotSource(), BotSource.SMS.getValue())) {
+      queryEvt = switch (queryType) {
+        case KEYW_SUBS -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
+          var usrId = usrByMobile.getResp().getId();
+          var usr = new UserDto();
+          usr.setSvcStatus(ServiceStatus.OPT_IN);
+          return userApi.patchById(usrId, usr)
+            .chain(() -> sendResponse(evt, session.getResp().getUsername(),
               """
-                We are sad to see you go, you will no longer receive any messages from FPI.
+                Thank you for subscribing to FPI Service, with this subscription you agree to our privacy policy at https://florenz.abavilla.com/privacy-policy.
                   
-                To opt-in with our service again send "SUBSCRIBE" to 225642222"""));
-          });
-          default -> queryEvt; // if not a SUB or STOP command, retain load query assumption
-        };
-      }
+                To opt out send "STOP" to 225642222"""));
+        });
+        case KEYW_STOP -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
+          var usrId = usrByMobile.getResp().getId();
+          var usr = new UserDto();
+          usr.setSvcStatus(ServiceStatus.OPT_OUT);
+          return userApi.patchById(usrId, usr).chain(() -> sendResponse(evt, session.getResp().getUsername(),
+            """
+              We are sad to see you go, you will no longer receive any messages from FPI.
+                
+              To opt-in with our service again send "SUBSCRIBE" to 225642222"""));
+        });
+        default -> queryEvt; // if not a SUB or STOP command, retain load query assumption
+      };
     }
 
     return queryEvt;
