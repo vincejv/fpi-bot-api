@@ -158,11 +158,13 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
   }
 
   protected Uni<Void> sendResponse(E evt, String fpiUser, String msg) {
-    Log.info("Sending msgr msg: " + msg + " event: " + getEventIdForLogging(evt));
-    var msgReq = createMsgReqFromEvt(evt);
-    msgReq.setContent(msg);
-    return toggleTyping(msgReq.getRecipient(), true)
-      .chain(() -> sendMsgrMsg(msgReq, fpiUser));
+    return Uni.createFrom().voidItem().chain(() -> {
+      Log.info("Sending msgr msg: " + msg + " event: " + getEventIdForLogging(evt));
+      var msgReq = createMsgReqFromEvt(evt);
+      msgReq.setContent(msg);
+      return toggleTyping(msgReq.getRecipient(), true)
+        .chain(() -> sendMsgrMsg(msgReq, fpiUser));
+    });
   }
 
   protected abstract Uni<Void> sendMsgrMsg(MsgrMsgReqDto msgReq, String fpiUser);
