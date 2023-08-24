@@ -18,12 +18,21 @@
 
 package com.abavilla.fpi.bot.processor;
 
+import java.util.EnumSet;
+import java.util.stream.Collectors;
+
 import com.abavilla.fpi.bot.codec.MoEvtDtoCodec;
 import com.abavilla.fpi.bot.dto.MOEvtDto;
+import com.abavilla.fpi.bot.entity.enums.QueryEvtType;
 import com.abavilla.fpi.bot.entity.m360.MOEvt;
 import com.abavilla.fpi.bot.mapper.m360.MOEvtMapper;
 import com.abavilla.fpi.bot.repo.MOEvtRepo;
+import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
+import com.abavilla.fpi.login.ext.dto.SessionDto;
+import com.abavilla.fpi.login.ext.dto.UserDto;
+import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
+import com.abavilla.fpi.login.ext.entity.ServiceStatus;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
 import com.abavilla.fpi.sms.ext.dto.MsgReqDto;
 import com.abavilla.fpi.sms.ext.rest.SmsApi;
@@ -33,6 +42,7 @@ import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class MoMsgEvtPcsr extends EvtPcsr<MOEvtDto, SmsApi, MOEvtRepo, MOEvt> {
@@ -44,6 +54,64 @@ public class MoMsgEvtPcsr extends EvtPcsr<MOEvtDto, SmsApi, MOEvtRepo, MOEvt> {
   public Uni<Void> process(MOEvtDto evt) {
     Log.info("Received MO Msg event: " + evt);
     return processEvent(evt);
+  }
+
+  @Override
+  protected Uni<Void> postProcessEvt(WebhookLoginDto login, RespDto<SessionDto> session, MOEvtDto evt, QueryDto query,
+                                     Uni<Void> queryEvt) {
+    var queryType = determineQueryType(query.getQuery());
+    if (StringUtils.equalsIgnoreCase(query.getBotSource(), BotSource.SMS.getValue())) {
+      queryEvt = switch (queryType) {
+        case KEYW_SUBS -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
+          var usrId = usrByMobile.getResp().getId();
+          var usr = new UserDto();
+          usr.setSvcStatus(ServiceStatus.OPT_IN);
+          return userApi.patchById(usrId, usr)
+            .chain(() -> sendResponse(evt, session.getResp().getUsername(),
+              """
+                Thank you for subscribing to FPI Service, with this subscription you agree to our privacy policy at https://florenz.abavilla.com/privacy-policy.
+
+                To opt-out of our service send "STOP" to 225642222"""));
+        });
+        case KEYW_STOP -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
+          var usrId = usrByMobile.getResp().getId();
+          var usr = new UserDto();
+          usr.setSvcStatus(ServiceStatus.OPT_OUT);
+          return userApi.patchById(usrId, usr).chain(() -> sendResponse(evt, session.getResp().getUsername(),
+            """
+              We are sad to see you go, you will no longer receive any messages from FPI.
+
+              To opt-in with our service again send "SUBSCRIBE" to 225642222"""));
+        });
+        case KEYW_STATUS -> userApi.getByMobile(login.getUsername()).chain(usrByMobile ->
+          sendResponse(evt, session.getResp().getUsername(),
+          """
+            Your current service status to FPI is: %s
+
+            To opt-in with our service send "SUBSCRIBE", to opt-out, "STOP" to 225642222"""
+            .formatted(usrByMobile.getResp().getSvcStatus())));
+        default -> queryEvt; // if not a SUB or STOP command, retain load query assumption
+      };
+    }
+    return queryEvt;
+  }
+
+  private QueryEvtType determineQueryType(String query) {
+    var tokens = StringUtils.split(query.toUpperCase());
+    var keyWords = EnumSet.allOf(QueryEvtType.class).
+      stream().map(QueryEvtType::getValue).collect(Collectors.toUnmodifiableSet());
+    if (tokens.length == 1) {
+      if (keyWords.contains(tokens[0])) {
+        if (StringUtils.equalsIgnoreCase(tokens[0], QueryEvtType.KEYW_SUBS.getValue())) {
+          return QueryEvtType.KEYW_SUBS;
+        } else if (StringUtils.equalsIgnoreCase(tokens[0], QueryEvtType.KEYW_STOP.getValue())) {
+          return QueryEvtType.KEYW_STOP;
+        } else {
+          return QueryEvtType.KEYW_REG;
+        }
+      }
+    }
+    return QueryEvtType.LOAD_QUERY;
   }
 
   @Override
