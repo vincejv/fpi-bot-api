@@ -18,9 +18,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import java.util.EnumSet;
-import java.util.stream.Collectors;
-
 import com.abavilla.fpi.bot.codec.MoEvtDtoCodec;
 import com.abavilla.fpi.bot.dto.MOEvtDto;
 import com.abavilla.fpi.bot.entity.enums.QueryEvtType;
@@ -98,18 +95,8 @@ public class MoMsgEvtPcsr extends EvtPcsr<MOEvtDto, SmsApi, MOEvtRepo, MOEvt> {
 
   private QueryEvtType determineQueryType(String query) {
     var tokens = StringUtils.split(query.toUpperCase());
-    var keyWords = EnumSet.allOf(QueryEvtType.class).
-      stream().map(QueryEvtType::getValue).collect(Collectors.toUnmodifiableSet());
     if (tokens.length == 1) {
-      if (keyWords.contains(tokens[0])) {
-        if (StringUtils.equalsIgnoreCase(tokens[0], QueryEvtType.KEYW_SUBS.getValue())) {
-          return QueryEvtType.KEYW_SUBS;
-        } else if (StringUtils.equalsIgnoreCase(tokens[0], QueryEvtType.KEYW_STOP.getValue())) {
-          return QueryEvtType.KEYW_STOP;
-        } else {
-          return QueryEvtType.KEYW_REG;
-        }
-      }
+      return QueryEvtType.fromValue(tokens[0]);
     }
     return QueryEvtType.LOAD_QUERY;
   }
