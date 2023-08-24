@@ -16,10 +16,6 @@
 
 package com.abavilla.fpi.bot.processor;
 
-import java.util.EnumSet;
-import java.util.stream.Collectors;
-
-import com.abavilla.fpi.bot.entity.enums.QueryEvtType;
 import com.abavilla.fpi.fw.dto.impl.RespDto;
 import com.abavilla.fpi.fw.entity.AbsItem;
 import com.abavilla.fpi.fw.exceptions.ApiSvcEx;
@@ -28,13 +24,10 @@ import com.abavilla.fpi.fw.rest.IApi;
 import com.abavilla.fpi.load.ext.dto.QueryDto;
 import com.abavilla.fpi.load.ext.rest.LoadQueryApi;
 import com.abavilla.fpi.login.ext.dto.SessionDto;
-import com.abavilla.fpi.login.ext.dto.UserDto;
 import com.abavilla.fpi.login.ext.dto.WebhookLoginDto;
-import com.abavilla.fpi.login.ext.entity.ServiceStatus;
 import com.abavilla.fpi.login.ext.rest.TrustedLoginApi;
 import com.abavilla.fpi.login.ext.rest.UserApi;
 import com.abavilla.fpi.msgr.ext.dto.MsgrMsgReqDto;
-import com.abavilla.fpi.telco.ext.enums.BotSource;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -112,7 +105,6 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
     Log.info("Authenticated: " + login.getUsername());
 
     var query = createLoadQueryFromEvt(evt);
-    var queryType = determineQueryType(query.getQuery());
     var queryEvt = // by default will send the session status
       sendResponse(evt, session.getResp().getUsername(), session.getStatus());
 
@@ -125,53 +117,17 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
         });
     }
 
-    if (StringUtils.equalsIgnoreCase(query.getBotSource(), BotSource.SMS.getValue())) {
-      queryEvt = switch (queryType) {
-        case KEYW_SUBS -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
-          var usrId = usrByMobile.getResp().getId();
-          var usr = new UserDto();
-          usr.setSvcStatus(ServiceStatus.OPT_IN);
-          return userApi.patchById(usrId, usr)
-            .chain(() -> sendResponse(evt, session.getResp().getUsername(),
-              """
-                Thank you for subscribing to FPI Service, with this subscription you agree to our privacy policy at https://florenz.abavilla.com/privacy-policy.
-                  
-                To opt out send "STOP" to 225642222"""));
-        });
-        case KEYW_STOP -> userApi.getByMobile(login.getUsername()).chain(usrByMobile -> {
-          var usrId = usrByMobile.getResp().getId();
-          var usr = new UserDto();
-          usr.setSvcStatus(ServiceStatus.OPT_OUT);
-          return userApi.patchById(usrId, usr).chain(() -> sendResponse(evt, session.getResp().getUsername(),
-            """
-              We are sad to see you go, you will no longer receive any messages from FPI.
-                
-              To opt-in with our service again send "SUBSCRIBE" to 225642222"""));
-        });
-        default -> queryEvt; // if not a SUB or STOP command, retain load query assumption
-      };
-    }
+    queryEvt = postProcessEvt(login, session, evt, query, queryEvt);
 
     return queryEvt;
   }
 
-  protected QueryEvtType determineQueryType(String query) {
-    var tokens = StringUtils.split(query);
-    var keyWords = EnumSet.allOf(QueryEvtType.class).
-      stream().map(QueryEvtType::getValue).collect(Collectors.toUnmodifiableSet());
-    for (String token : tokens) {
-      if (keyWords.contains(token)) {
-        if (StringUtils.equalsIgnoreCase(token, QueryEvtType.KEYW_SUBS.getValue())) {
-          return QueryEvtType.KEYW_SUBS;
-        } else if (StringUtils.equalsIgnoreCase(token, QueryEvtType.KEYW_STOP.getValue())) {
-          return QueryEvtType.KEYW_STOP;
-        } else {
-          return QueryEvtType.KEYW_REG;
-        }
-      }
-    }
-    return QueryEvtType.LOAD_QUERY;
+  protected Uni<Void> postProcessEvt(WebhookLoginDto login, RespDto<SessionDto> session, E evt, QueryDto query,
+                                     Uni<Void> queryEvt) {
+    // do not post process query by default
+    return queryEvt;
   }
+
 
   protected void handleMsgEx(Throwable sendMsgEx) {
     Log.error("Message sending failed: " + sendMsgEx.getMessage(), sendMsgEx);
@@ -201,7 +157,7 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
       getSenderFromEvt(evt), false).replaceWithVoid());
   }
 
-  private Uni<Void> sendResponse(E evt, String fpiUser, String msg) {
+  protected Uni<Void> sendResponse(E evt, String fpiUser, String msg) {
     Log.info("Sending msgr msg: " + msg + " event: " + getEventIdForLogging(evt));
     var msgReq = createMsgReqFromEvt(evt);
     msgReq.setContent(msg);

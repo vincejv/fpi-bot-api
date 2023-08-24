@@ -21,6 +21,7 @@ public enum QueryEvtType implements IBaseEnum {
   KEYW_STOP(2, "STOP"),
   KEYW_REG(3, "REG"),
   LOAD_QUERY(4, "LOAD"),
+  KEYW_STATUS(5, "STATUS"),
   UNKNOWN(-1, UNKNOWN_PREFIX);
 
   /**
