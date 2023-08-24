@@ -60,12 +60,13 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
   public Uni<Void> processEvent(E evt) {
     if (StringUtils.isNotBlank(getContentFromEvt(evt))) {
       return toggleTyping(getSenderFromEvt(evt), true).chain(() -> {
-          Log.info("Processing event: " + getEventIdForLogging(evt));
+          Log.info("Logging event: " + getEventIdForLogging(evt));
           I evtEntity = mapToEntity(evt);
           return evtLog.persist(evtEntity).chain(() -> {
-
-              // verify if person is registered
-              Log.info("Logged to db: " + getEventIdForLogging(evt));
+            // verify if person is registered
+            Log.info("Logged incoming evt to logging db: " + getEventIdForLogging(evt));
+            if (preProcessEvt(evt)) {
+              Log.info("Processing evt: " + getEventIdForLogging(evt));
               Uni<WebhookLoginDto> prepWHLogin = getFriendlyUserName(evt).map(friendlyName -> {
                 var webhookLogin = new WebhookLoginDto();
                 webhookLogin.setUsername(getSenderFromEvt(evt));
@@ -85,13 +86,15 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
                   // login failures
                   .onFailure(ApiSvcEx.class).recoverWithUni(ex -> handleApiEx(evt, ex));
               });
-            })
-            .onFailure(ex -> ex instanceof MongoWriteException wEx &&
-              wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
-            .recoverWithItem(() -> {
-              Log.warn("Received duplicate event :: " + getEventIdForLogging(evt));
-              return null;
-            });
+            };
+            return Uni.createFrom().voidItem(); // skip processing as preProcess returns false
+          })
+          .onFailure(ex -> ex instanceof MongoWriteException wEx &&
+            wEx.getError().getCategory().equals(ErrorCategory.DUPLICATE_KEY))
+          .recoverWithItem(() -> {
+            Log.warn("Received duplicate event :: " + getEventIdForLogging(evt));
+            return null;
+          });
         })
         .chain(() -> toggleTyping(getSenderFromEvt(evt), false)).replaceWithVoid()
         .onFailure().invoke(this::handleMsgEx);
@@ -126,6 +129,15 @@ public abstract class EvtPcsr<E, A extends IApi, R extends AbsMongoRepo<I>, I ex
                                      Uni<Void> queryEvt) {
     // do not post process query by default
     return queryEvt;
+  }
+
+  /**
+   * Checks if event should be processed
+   * @param evt {@link E} Event object
+   * @return {@code true} if to continue processing, otherwise {@code false}
+   */
+  protected boolean preProcessEvt(E evt) {
+    return true;
   }
 
 
