@@ -154,28 +154,30 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ steps.image_version.outputs.service_image_path }}
           project_id: ${{ env.PROJECT_ID }}
-          flags: --cpu ${{ env.SERVICE_CPU }} --memory ${{ env.SERVICE_MEMORY }} --timeout 900 --no-cpu-throttling
-          env_vars: |
-            DB_NAME=bot-api-dev
-            OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
-            OIDC_AUTH_URL=${{ secrets.OIDC_AUTH_URL }}
-            LOGIN_BASE_URI=${{ secrets.LOGIN_BASE_URI }}
-            META_FB_VRFY_TOKEN=${{ secrets.META_FB_VRFY_TOKEN }}
-            META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
-            FPI_APP_TO_APP_USERN=${{ secrets.FPI_APP_TO_APP_USERN }}
-            USER_BASE_URI=${{ secrets.USER_BASE_URI }}
-            LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
-            MSGR_API_BASE_URI=${{ secrets.MSGR_API_BASE_URI }}
-            TG_API_BASE_URI=${{ secrets.TG_API_BASE_URI }}
-            TELEGRAM_SECRET_VERIFY_TOKEN=${{ secrets.TELEGRAM_SECRET_VERIFY_TOKEN }}
-            VIBER_AUTH_TOKEN=${{ secrets.VIBER_AUTH_TOKEN }}
-            VIBER_API_BASE_URI=${{ secrets.VIBER_API_BASE_URI }}
-            SMS_BASE_URI=${{ secrets.SMS_BASE_URI }}
-          secrets: |
-            MONGO_CONN_STRING=vbl_mongo_connection_string:latest
-            OIDC_SECRET=oidc_secret_keycloak:latest
-            FPI_APP_TO_APP_PASSW=fpi_bot_api_creds_secret_key:latest
-            FPI_MO_WEBHOOK_KEY=fpi_mo_incoming_webook_key:latest
+          flags: |
+            --set-env-vars ^##^MONGO_CONN_STRING=${{ secrets.MONGO_CONN_STRING }}
+            --set-env-vars OIDC_CLIENT_ID=${{ secrets.OIDC_CLIENT_ID }}
+            --set-env-vars OIDC_AUTH_URL=${{ secrets.OIDC_AUTH_URL }}
+            --set-env-vars OIDC_SECRET=${{ secrets.OIDC_SECRET }}
+            --set-env-vars FPI_APP_TO_APP_USERN=${{ secrets.FPI_APP_TO_APP_USERN }}
+            --set-env-vars FPI_APP_TO_APP_PASSW=${{ secrets.FPI_APP_TO_APP_PASSW }}
+            --set-env-vars FPI_MO_WEBHOOK_KEY=${{ secrets.FPI_MO_WEBHOOK_KEY }}
+            --set-env-vars LOGIN_BASE_URI=${{ secrets.LOGIN_BASE_URI }}
+            --set-env-vars USER_BASE_URI=${{ secrets.USER_BASE_URI }}
+            --set-env-vars LOAD_API_BASE_URI=${{ secrets.LOAD_API_BASE_URI }}
+            --set-env-vars MSGR_API_BASE_URI=${{ secrets.MSGR_API_BASE_URI }}
+            --set-env-vars TG_API_BASE_URI=${{ secrets.TG_API_BASE_URI }}
+            --set-env-vars SMS_BASE_URI=${{ secrets.SMS_BASE_URI }}
+            --set-env-vars VIBER_API_BASE_URI=${{ secrets.VIBER_API_BASE_URI }}
+            --set-env-vars META_FB_VRFY_TOKEN=${{ secrets.META_FB_VRFY_TOKEN }}
+            --set-env-vars META_FB_APP_SECRET=${{ secrets.META_FB_APP_SECRET }}
+            --set-env-vars TELEGRAM_SECRET_VERIFY_TOKEN=${{ secrets.TELEGRAM_SECRET_VERIFY_TOKEN }}
+            --set-env-vars VIBER_AUTH_TOKEN=${{ secrets.VIBER_AUTH_TOKEN }}
+            --set-env-vars DB_NAME=bot-api-dev
+            --cpu ${{ env.SERVICE_CPU }}
+            --memory ${{ env.SERVICE_MEMORY }}
+            --timeout 900
+            --no-cpu-throttling
           labels: |
             env=${{ env.SERVICE_ENV }}
 
