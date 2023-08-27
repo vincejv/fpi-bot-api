@@ -79,7 +79,7 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-login-api</artifactId>
-        <version>1.9.3</version>
+        <version>1.10.1</version>
       </dependency>
 
       <dependency>
