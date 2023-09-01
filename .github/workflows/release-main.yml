@@ -260,3 +260,35 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: mvn -B deploy -Dlib-only -Prelease-for-oss
+
+  gcr-cleaner:
+    name: Clean-up old artifact registry images
+    needs: deploy_to_cloud
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Google Auth
+        id: gcp-auth
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+
+      - name: Login to Google Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: 'oauth2accesstoken'
+          password: ${{ steps.gcp-auth.outputs.access_token }}
+
+      - name: Run GCR Cleaner
+        uses: docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli
+        with:
+          args: >-
+            -repo=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GHUB_REPO_NAME }}/${{ env.SERVICE }}
+            -tag-filter-any "."
+            -keep=1
+            -recursive=true
