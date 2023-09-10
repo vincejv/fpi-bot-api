@@ -97,7 +97,7 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-telco-plugin</artifactId>
-        <version>1.3.8</version>
+        <version>1.3.10</version>
       </dependency>
 
       <!-- explicit declaration for native image fix -->
