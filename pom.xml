@@ -91,7 +91,7 @@
       <dependency>
         <groupId>com.abavilla</groupId>
         <artifactId>fpi-msgr-api</artifactId>
-        <version>1.6.1</version>
+        <version>1.6.3</version>
       </dependency>
 
       <dependency>
