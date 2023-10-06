@@ -111,7 +111,7 @@
       <dependency>
         <groupId>com.github.pengrad</groupId>
         <artifactId>java-telegram-bot-api</artifactId>
-        <version>6.8.0</version>
+        <version>6.9.1</version>
       </dependency>
 
       <dependency>
