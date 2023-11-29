@@ -106,7 +106,7 @@ jobs:
 
       - name: Google Auth
         id: gcp-auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
@@ -269,7 +269,7 @@ jobs:
     steps:
       - name: Google Auth
         id: gcp-auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
